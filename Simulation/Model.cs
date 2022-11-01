@@ -1,16 +1,23 @@
-﻿public class Model
+﻿namespace Simulation;
+
+public class Model
 {
-    public Chanell MainChanell;
-    public Model(Chanell mainChanell)
+    private readonly StateEvent _creator;
+    private readonly StateEvent[] _processes;
+    public Model(StateEvent creator, params StateEvent[] processes)
     {
-        MainChanell = mainChanell;
+        _creator = creator;
+        _processes = processes;
     }
     public void Simulate(float totalTime)
     {
         float currentTime = 0;
-        while(currentTime < totalTime)
+        _creator.Start(0);
+        while (currentTime < totalTime && Channel.Closest.Count > 0)
         {
-
+            Channel nextChanell = Channel.Closest.Dequeue();
+            nextChanell.End();
+            //nextState.CurrentChanell.End();
         }
     }
 }
