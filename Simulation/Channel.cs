@@ -2,39 +2,40 @@
 
 public class Channel
 {
-    public static PriorityQueue <Channel, double> Closest = new PriorityQueue<Channel, double>();
-    public Channel? ParentChanell;
-    public Channel[]? SubChanells;
-    public StateEvent? State;
+    public Model Model;
+    public Channel? ParentChannel = null;
+    public Channel[]? SubChannels = null;
+    public StateEvent? State = null;
+    public Func<double> RandFunc;
     public Queue<StateEvent> Queue = new Queue<StateEvent>();
     public int QueueSize;
     public double TimeStart;
     public double TimeEnd = -1;
-    public Channel()
+    public Channel(Model model, Func<double> randFunc)
     {
-        SubChanells = null;
+        Model = model;
+        RandFunc = randFunc;
         QueueSize = -1;
     }
-    public Channel(Channel[] subChanells)
+    public Channel(Model model, Func<double> randFunc, int queueSize)
     {
-        SubChanells = subChanells;
-        QueueSize = -1;
-    }
-    public Channel(int queueSize)
-    {
-        SubChanells = null;
+        Model = model;
+        RandFunc = randFunc;
         QueueSize = queueSize;
     }
-    public Channel(int queueSize, Channel[] subChanells)
+    public void SetSubChannels(params Channel[] subChannels)
     {
-        SubChanells = subChanells;
-        QueueSize = queueSize;
+        SubChannels = subChannels;
+        foreach (var subChannel in subChannels)
+        {
+            subChannel.ParentChannel = this;
+        }
     }
     public bool TryAdd(double timeStart, StateEvent state)
     {
-        if(SubChanells != null)
+        if(SubChannels != null)
         {
-            foreach (var subChanell in SubChanells)
+            foreach (var subChanell in SubChannels)
             {
                 if (subChanell.TryAdd(timeStart, state))
                 {
@@ -45,7 +46,7 @@ public class Channel
         }
         else
         {
-            if(State != null)
+            if(State == null)
             {
                 Start(timeStart, state);
                 return true;
@@ -67,9 +68,9 @@ public class Channel
             Queue!.Enqueue(state);
             return true;
         }
-        else if (ParentChanell != null)
+        else if (ParentChannel != null)
         {
-            return ParentChanell.TryAddToQueue(state);
+            return ParentChannel.TryAddToQueue(state);
         }
         return false;
     }
@@ -77,12 +78,14 @@ public class Channel
     {
         State = state;
         TimeStart = timeStart;
-        TimeEnd = State.RandFunc();
-        Closest.Enqueue(this, 1 / TimeEnd);
+        TimeEnd = TimeStart + RandFunc();
+        Model.Closest.Enqueue(this, TimeEnd);
+        Console.WriteLine($"Start {State.Name} (must end at: {TimeEnd})");
     }
     public void End()
     {
-        if(State!.Transitions != null)
+        Console.WriteLine($"End {State!.Name}");
+        if (State!.Transitions != null)
         {
             StateEvent? nextState = State.Transitions[0]!.state;
             if(nextState != null)
@@ -91,12 +94,16 @@ public class Channel
             }
         }
         //
-        if (Queue.Count > 0)
+
+        if (State!.Repeat)
+        {
+            Start(TimeEnd, State!);
+        }
+        else if (Queue.Count > 0)
             Start(TimeEnd, Queue.Dequeue());
         else
         {
             State = null;
-            TimeEnd = -1;
         }
     }
 }

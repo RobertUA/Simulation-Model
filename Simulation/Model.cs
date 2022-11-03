@@ -2,22 +2,22 @@
 
 public class Model
 {
-    private readonly StateEvent _creator;
-    private readonly StateEvent[] _processes;
-    public Model(StateEvent creator, params StateEvent[] processes)
+    public PriorityQueue<Channel, double> Closest = new PriorityQueue<Channel, double>();
+    public void Simulate(double totalTime)
     {
-        _creator = creator;
-        _processes = processes;
-    }
-    public void Simulate(float totalTime)
-    {
-        float currentTime = 0;
-        _creator.Start(0);
-        while (currentTime < totalTime && Channel.Closest.Count > 0)
+        Channel nextChanell = Closest.Dequeue();
+        double currentTime = nextChanell.TimeEnd;
+        while(currentTime < totalTime)
         {
-            Channel nextChanell = Channel.Closest.Dequeue();
+            Console.WriteLine($"\n------------------------ [{currentTime}] ------------------------");
             nextChanell.End();
-            //nextState.CurrentChanell.End();
+            if (Closest.Count == 0)
+            {
+                Console.WriteLine("[!] Break [!] No transitions found");
+                break;
+            }
+            nextChanell = Closest.Dequeue();
+            currentTime = nextChanell.TimeEnd;
         }
     }
 }

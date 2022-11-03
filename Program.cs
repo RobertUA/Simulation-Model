@@ -2,18 +2,21 @@
 
 using Simulation;
 
-Channel creatorChanell = new Channel();
-StateEvent creator = new StateEvent(creatorChanell, () => Random.Shared.NextDouble());
+Model model = new Model();
 
+Channel createChannel = new Channel(model, () => Random.Shared.NextDouble());
+StateEvent create = new StateEvent("Create", createChannel, true);
 
-Channel[] processorSubchanells = new Channel[2]
+Channel processChannel = new Channel(model, () => Random.Shared.NextDouble());
+Channel[] processSubchannels = new Channel[2]
 {
-    new Channel(),
-    new Channel()
+    new Channel(model, () => Random.Shared.NextDouble()),
+    new Channel(model, () => Random.Shared.NextDouble())
 };
-Channel processChanell = new Channel(processorSubchanells);
-StateEvent processor = new StateEvent(processChanell, () => Random.Shared.NextDouble());
+processChannel.SetSubChannels(processSubchannels);
+StateEvent process = new StateEvent("Process", processChannel, false);
 
-Model model = new Model(creator, processor);
+create.SetTransitions((process, 1));
 
-model.Simulate(1000);
+create.Start(0);
+model.Simulate(3);

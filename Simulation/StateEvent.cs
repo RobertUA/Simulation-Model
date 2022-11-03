@@ -2,13 +2,18 @@
 
 public class StateEvent
 {
+    public string Name;
     public Channel MainChanell;
-    public Func<double> RandFunc;
+    public bool Repeat;
     public (StateEvent? state, double weight)[]? Transitions;
-    public StateEvent(Channel mainChanell, Func<double> randFunc, params (StateEvent? state, double weight)[]? transitions)
+    public StateEvent(string name, Channel mainChanell, bool repeat)
     {
+        Name = name;
         MainChanell = mainChanell;
-        RandFunc = randFunc;
+        Repeat = repeat;
+    }
+    public void SetTransitions(params (StateEvent? state, double weight)[]? transitions)
+    {
         Transitions = transitions;
     }
     public void Start(double timeStart, Channel? chanell=null)
