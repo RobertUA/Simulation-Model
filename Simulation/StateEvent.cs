@@ -3,22 +3,37 @@
 public class StateEvent
 {
     public string Name;
-    public Channel MainChanell;
+    public Model Model;
+    public List<Channel> Channels = new List<Channel>();
     public bool Repeat;
     public (StateEvent? state, double weight)[]? Transitions;
-    public StateEvent(string name, Channel mainChanell, bool repeat)
+    public StateEvent(Model model, string name, bool repeat)
     {
+        Model = model;
+        Model.StateEvents.Add(this);
         Name = name;
-        MainChanell = mainChanell;
         Repeat = repeat;
     }
     public void SetTransitions(params (StateEvent? state, double weight)[]? transitions)
     {
         Transitions = transitions;
     }
-    public void Start(double timeStart, Channel? chanell=null)
+    public bool TryStart(double timeStart)
     {
-        if (chanell == null) chanell = MainChanell;
-        chanell.TryAdd(timeStart, this);
+        foreach (var channel in Channels)
+        {
+            if(channel.TryStart(timeStart))
+            {
+                return true;
+            }
+        }
+        foreach (var channel in Channels)
+        {
+            if (channel.TryAddToQueue())
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
