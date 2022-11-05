@@ -1,6 +1,6 @@
 ﻿namespace Simulation;
 
-public class Channel
+public class Channel : StatisticObject
 {
     public State State;
     public Func<double> RandFunc;
@@ -28,7 +28,8 @@ public class Channel
     }
     public bool TryStart(double timeStart)
     {
-        if(IsBusy == false)
+        TotalCount++;
+        if (IsBusy == false)
         {
             Start(timeStart);
             return true;
@@ -42,6 +43,7 @@ public class Channel
             QueueSize++;
             return true;
         }
+        FailCount++;
         return false;
     }
     private void Start(double timeStart)

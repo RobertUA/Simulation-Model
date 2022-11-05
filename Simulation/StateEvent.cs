@@ -1,6 +1,6 @@
 ﻿namespace Simulation;
 
-public class State
+public class State : StatisticObject
 {
     public string Name;
     public Model Model;
@@ -20,6 +20,7 @@ public class State
     }
     public bool TryStartChannel(double timeStart)
     {
+        TotalCount++;
         if (_autoBalanceQueue)
         {
             // TODO
@@ -49,6 +50,7 @@ public class State
                 }
             }
         }
+        FailCount++;
         return false;
     }
 }

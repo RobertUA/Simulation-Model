@@ -18,6 +18,11 @@ public class Model
             _currentChannel = Closest.Dequeue();
             _currentTime = _currentChannel.TimeEnd;
         }
+        Console.WriteLine("------------------------ [END] ------------------------");
+        foreach (var state in States)
+        {
+            Console.WriteLine($"{state.Name} stats: {state.FailCount/state.SuccessCount}% ({state.FailCount}/{state.SuccessCount}) | [{string.Join(", ", state.Channels.Select(x => $"{x.FailCount}/{x.SuccessCount}"))}]");
+        }
     }
     public void PrintInfo()
     {
