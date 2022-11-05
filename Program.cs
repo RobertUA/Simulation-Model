@@ -4,14 +4,15 @@ using Simulation;
 
 Model model = new Model();
 
-StateEvent create = new StateEvent(model, "Create", true);
+State create = new State(model, "Create");
 Channel createChannel = new Channel(create, () => Random.Shared.NextDouble());
 
-StateEvent process = new StateEvent(model, "Process", false);
+State process = new State(model, "Process");
 Channel processChannel1 = new Channel(process, () => Random.Shared.NextDouble());
 Channel processChannel2 = new Channel(process, () => Random.Shared.NextDouble());
 
-create.SetTransitions((process, 1));
+create.Transitions.Add(new Transition(create));
+create.Transitions.Add(new Transition(process));
 
 create.TryStart(0);
 model.Simulate(100);
