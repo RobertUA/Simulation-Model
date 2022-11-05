@@ -2,33 +2,33 @@
 
 public class Model
 {
-    public HashSet<State> State = new HashSet<State>();
+    public HashSet<State> States = new HashSet<State>();
     public PriorityQueue<Channel, double> Closest = new PriorityQueue<Channel, double>();
+    private double _currentTime;
+    private Channel? _currentChannel;
     public void Simulate(double totalTime)
     {
-        Channel nextChanell = Closest.Dequeue();
-        double currentTime = nextChanell.TimeEnd;
-        while(currentTime < totalTime)
+        _currentChannel = Closest.Dequeue();
+        _currentTime = _currentChannel.TimeEnd;
+        while (_currentTime < totalTime)
         {
-            Console.WriteLine($"\n------------------------ [{currentTime}] ------------------------");
-            PrintAllStates();
-            nextChanell.End();
+            _currentChannel.End();
+            PrintInfo();
 
-
-            if (Closest.Count == 0)
-            {
-                Console.WriteLine("[!] Break [!] No transitions found");
-                break;
-            }
-            nextChanell = Closest.Dequeue();
-            currentTime = nextChanell.TimeEnd;
+            _currentChannel = Closest.Dequeue();
+            _currentTime = _currentChannel.TimeEnd;
         }
     }
-    public void PrintAllStates()
+    public void PrintInfo()
     {
-        if (State == null) return;
+        if (States == null) return;
 
-        foreach (var state in State)
+        Console.WriteLine($"------------------------ [{_currentTime}] ------------------------");
+        Console.WriteLine($"Current state (channel): {_currentChannel!.State.Name} ({_currentChannel.Id})");
+
+        //Console.WriteLine($"{_currentChannel!.State.Name} - [{string.Join(';', _currentChannel!.State.Channels.Select(x => x.IsBusy ? 1 : 0))}]");
+        //Console.WriteLine($"Queues: [{string.Join(';', _currentChannel!.State.Channels.Select(x => x.QueueSize))}]");
+        foreach (var state in States)
         {
             Console.WriteLine($"{state.Name} - [{string.Join(';', state.Channels.Select(x => x.IsBusy ? 1 : 0))}]");
             Console.WriteLine($"Queues: [{string.Join(';', state.Channels.Select(x => x.QueueSize))}]");

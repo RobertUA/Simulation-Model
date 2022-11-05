@@ -6,7 +6,7 @@ public class Channel
     public Func<double> RandFunc;
     public int QueueMaxSize;
     //
-    private int Id;
+    public int Id;
     public int QueueSize=0;
     public bool IsBusy = false;
     public double TimeStart;
@@ -60,7 +60,7 @@ public class Channel
             State? nextState = transition.GetTransitionState();
             if (nextState != null)
             {
-                nextState.TryStart(TimeEnd);
+                nextState.TryStartChannel(TimeEnd);
             }
         }
         //
