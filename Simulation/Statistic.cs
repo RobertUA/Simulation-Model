@@ -1,6 +1,6 @@
 ﻿namespace Simulation;
 
-public class StatisticObject
+public class Statistic
 {
     public int TotalCount = 0;
     public int FailCount = 0;

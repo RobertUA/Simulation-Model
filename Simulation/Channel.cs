@@ -1,22 +1,33 @@
 ﻿namespace Simulation;
 
-public class Channel : StatisticObject
+public class Channel
 {
     public State State;
     public Func<double> RandFunc;
     public int QueueMaxSize;
     //
     public int Id;
-    public int QueueSize=0;
+    public int QueueSize = 0;
     public bool IsBusy = false;
     public double TimeStart;
     public double TimeEnd = -1;
+    //
+    public Statistic? Statistic;
+    public Workload? Workload;
     public Channel(State state, Func<double> randFunc)
     {
         State = state;
         Id = State.Channels.Count;
         State.Channels.Add(this);
         RandFunc = randFunc;
+        if(state.Statistic != null)
+        {
+            Statistic = new();
+        }
+        if (state.Workload != null)
+        {
+            Workload = new();
+        }
         QueueMaxSize = -1;
     }
     public Channel(State state, Func<double> randFunc, int queueMaxSize)
@@ -24,11 +35,19 @@ public class Channel : StatisticObject
         State = state;
         State.Channels.Add(this);
         RandFunc = randFunc;
+        if (state.Statistic != null)
+        {
+            Statistic = new();
+        }
+        if (state.Workload != null)
+        {
+            Workload = new();
+        }
         QueueMaxSize = queueMaxSize;
     }
     public bool TryStart(double timeStart)
     {
-        TotalCount++;
+        if (Statistic != null) Statistic.TotalCount++;
         if (IsBusy == false)
         {
             Start(timeStart);
@@ -43,15 +62,18 @@ public class Channel : StatisticObject
             QueueSize++;
             return true;
         }
-        FailCount++;
+        if (Statistic != null) Statistic.FailCount++;
         return false;
     }
     private void Start(double timeStart)
     {
         IsBusy = true;
         TimeStart = timeStart;
-        TimeEnd = TimeStart + RandFunc();
+        double workTime = RandFunc();
+        TimeEnd = TimeStart + workTime;
         State.Model.Closest.Enqueue(this, TimeEnd);
+        if(Workload!=null) Workload.AddToWorkload(timeStart, TimeEnd);
+        if(State.Workload != null) State.Workload.AddToWorkload(timeStart, TimeEnd);
         //Console.WriteLine($"Start {State.Name} (must end at: {TimeEnd})");
     }
     public void End()

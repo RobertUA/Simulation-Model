@@ -1,10 +1,10 @@
 ﻿namespace Simulation;
 
-public class WeightTransition : ITransition
+public class TransitionWeights : ITransition
 {
     private Func<double> _randFunc;
     private (State? state, double weight)[] _data;
-    public WeightTransition(Func<double> randFunc, params (State? state, double weight)[] statesWeights)
+    public TransitionWeights(Func<double> randFunc, params (State? state, double weight)[] statesWeights)
     {
         _randFunc = randFunc;
         _data = statesWeights;

@@ -2,22 +2,28 @@
 
 using Simulation;
 
-Model model = new Model();
+Model model = new();
 
-State create = new State(model, "Create", OwnComparison);
-Channel createChannel = new Channel(create, () => Random.Shared.NextDouble());
+State create = new(model, "Create", false, false, OwnComparison);
+Channel createChannel = new(create, () => Random.Shared.NextDouble()/10);
 
-State process = new State(model, "Process");
-Channel processChannel1 = new Channel(process, () => Random.Shared.NextDouble());
-Channel processChannel2 = new Channel(process, () => Random.Shared.NextDouble());
+State process1 = new(model, "Process1", true, true);
+Channel process1Channel1 = new(process1, () => Random.Shared.NextDouble(), 2);
+Channel process1Channel2 = new(process1, () => Random.Shared.NextDouble(), 2);
 
-create.Transitions.Add(new Transition(create));
-create.Transitions.Add(new Transition(process));
+State process2 = new(model, "Process2", true, true);
+Channel process2Channel1 = new(process2, () => Random.Shared.NextDouble(), 2);
+Channel process2Channel2 = new(process2, () => Random.Shared.NextDouble(), 2);
+
+create.Transitions.Add(new TransitionSimple(create));
+create.Transitions.Add(new TransitionSimple(process1));
+
+process1.Transitions.Add(new TransitionSimple(process2));
 
 create.TryStartChannel(0);
-model.Simulate(10);
+model.Simulate(20);
 
-int OwnComparison(Channel x, Channel y)
+static int OwnComparison(Channel x, Channel y)
 {
     return x.QueueSize.CompareTo(y.QueueSize);
 }

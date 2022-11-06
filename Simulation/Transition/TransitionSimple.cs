@@ -1,9 +1,9 @@
 ﻿namespace Simulation;
 
-public class Transition : ITransition
+public class TransitionSimple : ITransition
 {
-    private State _state;
-    public Transition(State state)
+    private readonly State _state;
+    public TransitionSimple(State state)
     {
         _state = state;
     }
