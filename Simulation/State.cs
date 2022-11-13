@@ -9,12 +9,9 @@ public class State
     public readonly List<ITransition> FailTransitions = new();
     public Statistic? Statistic;
     public Workload? Workload;
-    //
-    private readonly Comparison<Channel>? _channelComparison = null;
-    private readonly bool _noQueuePriotity;
-    private readonly bool _autoBalanceQueue;
+    private Action<State>? _beforeAction = null;
     
-    public State(Model model, string name, bool statistic, bool workload, Comparison<Channel>? channelComparer = null, bool noQueuePriotity = true, bool autoBalanceQueue=false)
+    public State(Model model, string name, bool statistic, bool workload)
     {
         Model = model;
         Model.States.Add(this);
@@ -27,40 +24,27 @@ public class State
         {
             Workload = new();
         }
-        _channelComparison = channelComparer;
-        _noQueuePriotity = noQueuePriotity;
-        _autoBalanceQueue = autoBalanceQueue;
+    }
+    public void SetBeforeAction(Action<State> beforeAction)
+    {
+        _beforeAction = beforeAction;
     }
     public bool TryStartChannel(double timeStart)
     {
         if(Statistic!=null) Statistic.TotalCount++;
-        if (_autoBalanceQueue)
+        if (_beforeAction != null)
         {
-            // TODO
+            _beforeAction.Invoke(this);
         }
-        if (_channelComparison != null) Channels.Sort(_channelComparison);
         foreach (var channel in Channels)
         {
-            if(channel.TryStart(timeStart))
+            if (channel.TryStart(timeStart))
             {
                 return true;
             }
-            else if (_noQueuePriotity == false)
+            else if (channel.TryAddToQueue())
             {
-                if (channel.TryAddToQueue())
-                {
-                    return true;
-                }
-            }
-        }
-        if (_noQueuePriotity == true)
-        {
-            foreach (var channel in Channels)
-            {
-                if (channel.TryAddToQueue())
-                {
-                    return true;
-                }
+                return true;
             }
         }
         if (Statistic != null) Statistic.FailCount++;
