@@ -17,6 +17,7 @@ public class Workload
     private Segment _lastSegment;
     private double _workLoadTime = 0;
     private readonly Stack<Segment> _segments = new(new Segment[] { new Segment(0, 0) });
+    public Segment[] Segments { get { return _segments.ToArray(); } }
     public double WorkloadTime { get { return _workLoadTime; } }
     public void AddToWorkload(double timeStart, double timeEnd)
     {

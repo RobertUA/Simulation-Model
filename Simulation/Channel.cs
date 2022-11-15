@@ -4,33 +4,16 @@ public class Channel
 {
     public State State;
     public Func<double> RandFunc;
-    public int QueueMaxSize;
     //
     public int Id;
-    public int QueueSize = 0;
-    public bool IsBusy = false;
+    public ISimulationQueue? StateQueue;
+    public State? Creator = null;
     public double TimeStart;
     public double TimeEnd = -1;
     //
     public Statistic? Statistic;
     public Workload? Workload;
-    public Channel(State state, Func<double> randFunc)
-    {
-        State = state;
-        Id = State.Channels.Count;
-        State.Channels.Add(this);
-        RandFunc = randFunc;
-        if(state.Statistic != null)
-        {
-            Statistic = new();
-        }
-        if (state.Workload != null)
-        {
-            Workload = new();
-        }
-        QueueMaxSize = -1;
-    }
-    public Channel(State state, Func<double> randFunc, int queueMaxSize)
+    public Channel(State state, Func<double> randFunc, ISimulationQueue? queue = null)
     {
         State = state;
         State.Channels.Add(this);
@@ -43,31 +26,31 @@ public class Channel
         {
             Workload = new();
         }
-        QueueMaxSize = queueMaxSize;
+        StateQueue = queue;
     }
-    public bool TryStart(double timeStart)
+    public bool TryStart(double timeStart, State creator)
     {
         if (Statistic != null) Statistic.TotalCount++;
-        if (IsBusy == false)
+        if (Creator == null)
         {
-            Start(timeStart);
+            Start(timeStart, creator);
             return true;
         }
         return false;
     }
-    public bool TryAddToQueue()
+    public bool TryAddToQueue(State creator)
     {
-        if (QueueMaxSize <= -1 || QueueSize < QueueMaxSize)
+        if (StateQueue!=null && StateQueue.Count < StateQueue.MaxSize)
         {
-            QueueSize++;
+            StateQueue.Enqueue(creator);
             return true;
         }
         if (Statistic != null) Statistic.FailCount++;
         return false;
     }
-    private void Start(double timeStart)
+    private void Start(double timeStart, State creator)
     {
-        IsBusy = true;
+        Creator = creator;
         TimeStart = timeStart;
         double workTime = RandFunc();
         TimeEnd = TimeStart + workTime;
@@ -84,18 +67,17 @@ public class Channel
             State? nextState = transition.GetTransitionState();
             if (nextState != null)
             {
-                nextState.TryStartChannel(TimeEnd);
+                nextState.TryStartChannel(TimeEnd, Creator!);
             }
         }
         //
-        if (QueueSize > 0)
+        if (StateQueue != null && StateQueue.Count > 0)
         {
-            QueueSize--;
-            Start(TimeEnd);
+            Start(TimeEnd, StateQueue.Dequeue()!);
         }
         else
         {
-            IsBusy = false;
+            Creator = null;
         }
     }
 }

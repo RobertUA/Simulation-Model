@@ -41,7 +41,7 @@ public class Model
         {
             if (state.Statistic != null)
             {
-                Console.WriteLine($"{state.Name} | Channels: [{string.Join(';', state.Channels.Select(x => x.IsBusy ? 1 : 0))}] | Queues: [{string.Join(';', state.Channels.Select(x => x.QueueSize))}]");
+                Console.WriteLine($"{state.Name} | Channels: [{string.Join(';', state.Channels.Select(x => x.Creator!=null ? 1 : 0))}] | Queues: [{string.Join(';', state.Channels.Select(x => x.StateQueue != null ? x.StateQueue.Count : 0))}]");
                 //Console.Write($"{state.Name} - [");
                 //foreach (var channel in state.Channels)
                 //{

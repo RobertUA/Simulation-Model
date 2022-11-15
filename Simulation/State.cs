@@ -29,7 +29,7 @@ public class State
     {
         _beforeAction = beforeAction;
     }
-    public bool TryStartChannel(double timeStart)
+    public bool TryStartChannel(double timeStart, State creator)
     {
         if(Statistic!=null) Statistic.TotalCount++;
         if (_beforeAction != null)
@@ -38,11 +38,11 @@ public class State
         }
         foreach (var channel in Channels)
         {
-            if (channel.TryStart(timeStart))
+            if (channel.TryStart(timeStart, creator))
             {
                 return true;
             }
-            else if (channel.TryAddToQueue())
+            else if (channel.TryAddToQueue(creator))
             {
                 return true;
             }
@@ -51,7 +51,7 @@ public class State
         foreach (var failTransition in FailTransitions)
         {
             State? nextState = failTransition.GetTransitionState();
-            if(nextState!=null) nextState.TryStartChannel(timeStart);
+            if(nextState!=null) nextState.TryStartChannel(timeStart, creator);
         }
         return false;
     }

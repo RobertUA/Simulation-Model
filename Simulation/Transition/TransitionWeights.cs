@@ -2,29 +2,29 @@
 
 public class TransitionWeights : ITransition
 {
-    private Func<double> _randFunc;
-    private (State? state, double weight)[] _data;
+    private readonly Func<double> _randFunc;
+    private readonly (State? state, double weight)[] _statesWeights;
     public TransitionWeights(Func<double> randFunc, params (State? state, double weight)[] statesWeights)
     {
         _randFunc = randFunc;
-        _data = statesWeights;
+        _statesWeights = statesWeights;
         double sum = 0;
-        for (int i = 0; i < _data.Length; i++)
+        for (int i = 0; i < _statesWeights.Length; i++)
         {
-            sum += _data[i].weight;
+            sum += _statesWeights[i].weight;
         }
-        for (int i = 0; i < _data.Length; i++)
+        for (int i = 0; i < _statesWeights.Length; i++)
         {
-            _data[i].weight = _data[i].weight / sum + (i == 0 ? 0 : _data[i-1].weight);
+            _statesWeights[i].weight = _statesWeights[i].weight / sum + (i == 0 ? 0 : _statesWeights[i-1].weight);
         }
     }
     public State? GetTransitionState()
     {
         double rand = _randFunc();
-        for (int i = 0; i < _data.Length; i++)
+        for (int i = 0; i < _statesWeights.Length; i++)
         {
-            if (_data[i].weight <= rand) return _data[i].state;
+            if (_statesWeights[i].weight <= rand) return _statesWeights[i].state;
         }
-        return _data[0].state;
+        return null;
     }
 }
