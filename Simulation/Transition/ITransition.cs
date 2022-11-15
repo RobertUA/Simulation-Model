@@ -2,5 +2,5 @@
 
 public interface ITransition
 {
-    public State? GetTransitionState();
+    public Process? GetTransitionProcess();
 }

@@ -2,16 +2,16 @@
 
 public class TransitionConditional : ITransition
 {
-    private readonly (State? state, Func<bool> condition)[] _conditionalStates; 
-    public TransitionConditional(params (State? state, Func<bool> condition)[] conditionalStates)
+    private readonly (Process? process, Func<bool> condition)[] _conditionalProcesss; 
+    public TransitionConditional(params (Process? Process, Func<bool> condition)[] conditionalProcesss)
     {
-        _conditionalStates = conditionalStates;
+        _conditionalProcesss = conditionalProcesss;
     }
-    public State? GetTransitionState()
+    public Process? GetTransitionProcess()
     {
-        for (int i = 0; i < _conditionalStates.Length; i++)
+        for (int i = 0; i < _conditionalProcesss.Length; i++)
         {
-            if (_conditionalStates[i].condition.Invoke()) return _conditionalStates[i].state;
+            if (_conditionalProcesss[i].condition.Invoke()) return _conditionalProcesss[i].process;
         }
         return null;
     }

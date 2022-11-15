@@ -2,9 +2,9 @@
 
 public interface ISimulationQueue
 {
-    public void Enqueue(State state);
-    public State? Peek();
-    public State? Dequeue();
+    public void Enqueue(Client state);
+    public Client? Peek();
+    public Client? Dequeue();
     public int Count { get; }
     public int MaxSize { get; }
 }

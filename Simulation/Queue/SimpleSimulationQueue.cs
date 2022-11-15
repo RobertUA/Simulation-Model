@@ -2,7 +2,7 @@
 
 public class SimpleSimulationQueue : ISimulationQueue
 {
-    private readonly Queue<State> _queue = new();
+    private readonly Queue<Client> _queue = new();
     private readonly int _maxSize;
     public SimpleSimulationQueue(int maxSize=int.MaxValue)
     {
@@ -11,16 +11,16 @@ public class SimpleSimulationQueue : ISimulationQueue
     public int Count => _queue.Count;
     public int MaxSize => _maxSize;
 
-    public State? Dequeue()
+    public Client? Dequeue()
     {
         if (_queue.Count == 0) return null;
         return _queue.Dequeue();
     }
-    public void Enqueue(State state)
+    public void Enqueue(Client client)
     {
-        _queue.Enqueue(state);
+        _queue.Enqueue(client);
     }
-    public State? Peek()
+    public Client? Peek()
     {
         if (_queue.Count == 0) return null;
         return _queue.Peek();

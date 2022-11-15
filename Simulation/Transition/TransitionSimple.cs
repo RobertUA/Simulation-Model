@@ -2,12 +2,12 @@
 
 public class TransitionSimple : ITransition
 {
-    private readonly State _state;
-    public TransitionSimple(State state)
+    private readonly Process _state;
+    public TransitionSimple(Process state)
     {
         _state = state;
     }
-    public State? GetTransitionState()
+    public Process? GetTransitionProcess()
     {
         return _state;
     }

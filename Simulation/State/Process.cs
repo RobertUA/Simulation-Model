@@ -1,20 +1,16 @@
 ﻿namespace Simulation;
 
-public class State
+public class Process : State
 {
-    public string Name;
-    public Model Model;
     public List<Channel> Channels = new();
-    public readonly List<ITransition> Transitions = new();
     public readonly List<ITransition> FailTransitions = new();
-    public Statistic? Statistic;
+    public ChannelStatistic? Statistic;
     public Workload? Workload;
-    private Action<State>? _beforeAction = null;
-    
-    public State(Model model, string name, bool statistic, bool workload)
+    private Action<Process>? _beforeAction = null;
+    public Process(Model model, string name, bool statistic, bool workload) : base(name, model)
     {
         Model = model;
-        Model.States.Add(this);
+        Model.Processes.Add(this);
         Name = name;
         if (statistic)
         {
@@ -25,11 +21,11 @@ public class State
             Workload = new();
         }
     }
-    public void SetBeforeAction(Action<State> beforeAction)
+    public void SetBeforeAction(Action<Process> beforeAction)
     {
         _beforeAction = beforeAction;
     }
-    public bool TryStartChannel(double timeStart, State creator)
+    public bool TryStartChannel(double startTime, Client client)
     {
         if(Statistic!=null) Statistic.TotalCount++;
         if (_beforeAction != null)
@@ -38,11 +34,11 @@ public class State
         }
         foreach (var channel in Channels)
         {
-            if (channel.TryStart(timeStart, creator))
+            if (channel.TryStart(startTime, client))
             {
                 return true;
             }
-            else if (channel.TryAddToQueue(creator))
+            else if (channel.TryAddToQueue(client))
             {
                 return true;
             }
@@ -50,8 +46,8 @@ public class State
         if (Statistic != null) Statistic.FailCount++;
         foreach (var failTransition in FailTransitions)
         {
-            State? nextState = failTransition.GetTransitionState();
-            if(nextState!=null) nextState.TryStartChannel(timeStart, creator);
+            Process? nextState = failTransition.GetTransitionProcess();
+            if(nextState!=null) nextState.TryStartChannel(startTime, client);
         }
         return false;
     }
