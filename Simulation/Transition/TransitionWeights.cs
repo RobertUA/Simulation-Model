@@ -18,7 +18,7 @@ public class TransitionWeights : ITransition
             _statesWeights[i].weight = _statesWeights[i].weight / sum + (i == 0 ? 0 : _statesWeights[i-1].weight);
         }
     }
-    public Process? GetTransitionProcess()
+    public Process? GetTransitionProcess(Client client)
     {
         double rand = _randFunc();
         for (int i = 0; i < _statesWeights.Length; i++)
