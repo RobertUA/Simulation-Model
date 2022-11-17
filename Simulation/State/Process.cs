@@ -5,7 +5,7 @@ public class Process : State
     public List<Channel> Channels = new();
     public readonly List<ITransition> FailTransitions = new();
     public ChannelStatistic? Statistic;
-    public Workload? Workload;
+    public Timeline? Workload;
     private Action<Process>? _beforeAction = null;
     public Process(Model model, string name, bool statistic, bool workload) : base(name, model)
     {

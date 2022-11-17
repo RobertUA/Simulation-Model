@@ -12,7 +12,7 @@ public class Channel : ITimeEvent
     public Client? Client = null;
     //
     public ChannelStatistic? Statistic;
-    public Workload? Workload;
+    public Timeline? Workload;
     //
     private double _startTime;
     private double _endTime = -1;
@@ -70,8 +70,8 @@ public class Channel : ITimeEvent
         double workTime = RandFunc();
         _endTime = StartTime + workTime;
         Process.Model.Closest.Enqueue(this, EndTime);
-        if(Workload!=null) Workload.AddToWorkload(startTime, EndTime);
-        if(Process.Workload != null) Process.Workload.AddToWorkload(startTime, EndTime);
+        if(Workload!=null) Workload.Add(startTime, EndTime);
+        if(Process.Workload != null) Process.Workload.Add(startTime, EndTime);
         //Console.WriteLine($"Start {State.Name} (must end at: {TimeEnd})");
     }
     public void End()

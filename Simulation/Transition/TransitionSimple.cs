@@ -7,7 +7,7 @@ public class TransitionSimple : ITransition
     {
         _state = state;
     }
-    public Process? GetTransitionProcess()
+    public Process? GetTransitionProcess(Client client)
     {
         return _state;
     }

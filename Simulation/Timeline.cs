@@ -1,6 +1,6 @@
 ﻿namespace Simulation;
 
-public class Workload
+public class Timeline
 {
     public struct Segment
     {
@@ -19,7 +19,7 @@ public class Workload
     private readonly Stack<Segment> _segments = new(new Segment[] { new Segment(0, 0) });
     public Segment[] Segments { get { return _segments.ToArray(); } }
     public double WorkloadTime { get { return _workLoadTime; } }
-    public void AddToWorkload(double timeStart, double timeEnd)
+    public void Add(double timeStart, double timeEnd)
     {
         if (timeStart >= _lastSegment.EndTime)
         {
