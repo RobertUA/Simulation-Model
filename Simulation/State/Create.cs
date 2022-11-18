@@ -6,14 +6,8 @@ public class Create : State, ITimeEvent
     private double _endTime = -1;
     private readonly int _clientType;
     private readonly Func<double> _randFunc;
-    public double EndTime
-    {
-        get { return _endTime; }
-    }
-    public double StartTime
-    {
-        get { return _startTime; }
-    }
+    public double EndTime => _endTime;
+    public double StartTime => _startTime;
     public string Info
     {
         get { return $"{Name} | Client: {_clientType}"; }
@@ -34,10 +28,11 @@ public class Create : State, ITimeEvent
     public void End()
     {
         Start(EndTime);
-        Client newClient = new (EndTime, _clientType);
+        Client newClient = new (EndTime, _clientType, this);
+        Model.Clients.Add(newClient);
         foreach (var transition in Transitions)
         {
-            Process? nextState = transition.GetTransitionProcess();
+            Process? nextState = transition.GetTransitionProcess(newClient);
             if (nextState != null)
             {
                 nextState.TryStartChannel(EndTime, newClient);

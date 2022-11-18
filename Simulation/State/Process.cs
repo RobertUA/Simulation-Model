@@ -4,22 +4,14 @@ public class Process : State
 {
     public List<Channel> Channels = new();
     public readonly List<ITransition> FailTransitions = new();
-    public ChannelStatistic? Statistic;
-    public Timeline? Workload;
+    public Statistic Statistic = new();
+    public Timeline Timeline = new();
     private Action<Process>? _beforeAction = null;
-    public Process(Model model, string name, bool statistic, bool workload) : base(name, model)
+    public Process(Model model, string name) : base(name, model)
     {
         Model = model;
         Model.Processes.Add(this);
         Name = name;
-        if (statistic)
-        {
-            Statistic = new();
-        }
-        if (workload)
-        {
-            Workload = new();
-        }
     }
     public void SetBeforeAction(Action<Process> beforeAction)
     {
@@ -27,7 +19,7 @@ public class Process : State
     }
     public bool TryStartChannel(double startTime, Client client)
     {
-        if(Statistic!=null) Statistic.TotalCount++;
+        Statistic.TotalCount++;
         if (_beforeAction != null)
         {
             _beforeAction.Invoke(this);
@@ -43,12 +35,22 @@ public class Process : State
                 return true;
             }
         }
-        if (Statistic != null) Statistic.FailCount++;
+        //Process Queue TODO
+        Statistic.FailsCount++;
         foreach (var failTransition in FailTransitions)
         {
-            Process? nextState = failTransition.GetTransitionProcess();
+            Process? nextState = failTransition.GetTransitionProcess(client);
             if(nextState!=null) nextState.TryStartChannel(startTime, client);
         }
         return false;
+    }
+    //
+    public void OnChannelStart()
+    {
+        Statistic.StartsCount++;
+    }
+    public void OnChannelEnd(double startTime, double endTime)
+    {
+        Timeline.Add(startTime, endTime);
     }
 }

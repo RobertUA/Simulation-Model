@@ -1,6 +1,4 @@
-﻿using System.Xml.Linq;
-
-namespace Simulation;
+﻿namespace Simulation;
 
 public class Channel : ITimeEvent
 {
@@ -11,41 +9,25 @@ public class Channel : ITimeEvent
     public ISimulationQueue? StateQueue;
     public Client? Client = null;
     //
-    public ChannelStatistic? Statistic;
-    public Timeline? Workload;
+    public Statistic Statistic = new();
+    public Timeline Timeline = new();
     //
     private double _startTime;
     private double _endTime = -1;
-    public string Info
-    {
-        get { return $"Channel {Id} of {Process.Name} | Client: {(Client != null ? Client.Type : "null")}"; }
-    }
-    public double EndTime
-    {
-        get { return _endTime; }
-    }
-    public double StartTime
-    {
-        get { return _startTime; }
-    }
+    public string Info 
+        => $"Channel {Id} of {Process.Name} | Client: {(Client != null ? Client.Type : "null")}";
+    public double EndTime => _endTime;
+    public double StartTime => _startTime;
     public Channel(Process process, Func<double> randFunc, ISimulationQueue? queue = null)
     {
         Process = process;
         Process.Channels.Add(this);
         RandFunc = randFunc;
-        if (process.Statistic != null)
-        {
-            Statistic = new();
-        }
-        if (process.Workload != null)
-        {
-            Workload = new();
-        }
         StateQueue = queue;
     }
     public bool TryStart(double startTime, Client client)
     {
-        if (Statistic != null) Statistic.TotalCount++;
+        Statistic.TotalCount++;
         if (Client == null)
         {
             Start(startTime, client);
@@ -57,29 +39,36 @@ public class Channel : ITimeEvent
     {
         if (StateQueue!=null && StateQueue.Count < StateQueue.MaxSize)
         {
+            Statistic.AdditionsToQueueCount++;
             StateQueue.Enqueue(client);
             return true;
         }
-        if (Statistic != null) Statistic.FailCount++;
+        Statistic.FailsCount++;
+        client.OnFail();
         return false;
     }
     private void Start(double startTime, Client client)
     {
+        Statistic.StartsCount++;
         Client = client;
         _startTime = startTime;
         double workTime = RandFunc();
         _endTime = StartTime + workTime;
         Process.Model.Closest.Enqueue(this, EndTime);
-        if(Workload!=null) Workload.Add(startTime, EndTime);
-        if(Process.Workload != null) Process.Workload.Add(startTime, EndTime);
+        //
+        Process.OnChannelStart();
         //Console.WriteLine($"Start {State.Name} (must end at: {TimeEnd})");
     }
     public void End()
     {
+        Client!.OnChannelEnd(StartTime, EndTime);
+        Process.OnChannelEnd(StartTime, EndTime);
+
+        Timeline.Add(StartTime, EndTime);
         //Console.WriteLine($"End {State!.Name}");
         foreach (var transition in Process!.Transitions)
         {
-            Process? nextState = transition.GetTransitionProcess();
+            Process? nextState = transition.GetTransitionProcess(Client!);
             if (nextState != null)
             {
                 nextState.TryStartChannel(EndTime, Client!);
@@ -92,7 +81,7 @@ public class Channel : ITimeEvent
         }
         else
         {
-            Client!.Despose(EndTime);
+            Client!.OnDespose(EndTime);
             Client = null;
         }
     }

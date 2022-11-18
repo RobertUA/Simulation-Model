@@ -16,32 +16,36 @@ public class Timeline
     }
     private Segment _lastSegment;
     private double _workLoadTime = 0;
+    private double _waitTime = 0;
     private readonly Stack<Segment> _segments = new(new Segment[] { new Segment(0, 0) });
-    public Segment[] Segments { get { return _segments.ToArray(); } }
-    public double WorkloadTime { get { return _workLoadTime; } }
-    public void Add(double timeStart, double timeEnd)
+    public Segment[] Segments => _segments.ToArray();
+    public double WorkloadTime => _workLoadTime;
+    public double WaitTime => _waitTime;
+    public double TotalTime => _workLoadTime + _waitTime;
+    public void Add(double startTime, double endTime)
     {
-        if (timeStart >= _lastSegment.EndTime)
+        if (startTime >= _lastSegment.EndTime)
         {
+            _waitTime += startTime - _lastSegment.EndTime;
             _workLoadTime += _lastSegment.EndTime - _lastSegment.StartTime;
-            _lastSegment = new Segment(timeStart, timeEnd);
+            _lastSegment = new Segment(startTime, endTime);
             _segments.Push(_lastSegment);
         }
         else
         {
             double lastEndTime = _lastSegment.EndTime;
-            _lastSegment.EndTime = timeStart;
+            _lastSegment.EndTime = startTime;
             _workLoadTime += _lastSegment.EndTime - _lastSegment.StartTime;
             Segment middleSegment;
-            if (timeEnd <= lastEndTime) // full contain
+            if (endTime <= lastEndTime) // full contain
             {
-                middleSegment = new Segment(timeStart, timeEnd, _lastSegment.Count + 1);
-                _lastSegment = new Segment(timeEnd, lastEndTime, _lastSegment.Count);
+                middleSegment = new Segment(startTime, endTime, _lastSegment.Count + 1);
+                _lastSegment = new Segment(endTime, lastEndTime, _lastSegment.Count);
             }
             else
             {
-                middleSegment = new Segment(timeStart, lastEndTime, _lastSegment.Count + 1);
-                _lastSegment = new Segment(lastEndTime, timeEnd, _lastSegment.Count);
+                middleSegment = new Segment(startTime, lastEndTime, _lastSegment.Count + 1);
+                _lastSegment = new Segment(lastEndTime, endTime, _lastSegment.Count);
             }
             _segments.Push(middleSegment);
             _workLoadTime += middleSegment.EndTime - middleSegment.StartTime;

@@ -2,18 +2,19 @@
 
 public class Model
 {
+    public HashSet<Client> Clients = new();
     public HashSet<Process> Processes = new();
     public PriorityQueue<ITimeEvent, double> Closest = new();
     private double _currentTime;
     private ITimeEvent? _currentChannel;
-    public void Simulate(double totalTime)
+    public void Simulate(double totalTime, bool printSteps=false)
     {
         _currentChannel = Closest.Dequeue();
         _currentTime = _currentChannel.EndTime;
         while (_currentTime < totalTime)
         {
             _currentChannel.End();
-            PrintInfo();
+            if(printSteps) PrintInfo();
 
             _currentChannel = Closest.Dequeue();
             _currentTime = _currentChannel.EndTime;
@@ -23,8 +24,8 @@ public class Model
         {
             if (process.Statistic != null)
             {
-                double failChance = (double)process.Statistic.FailCount / process.Statistic.TotalCount;
-                Console.WriteLine($"{process.Name} stats: {failChance} ({process.Statistic.FailCount}/{process.Statistic.TotalCount}) | [{string.Join(", ", process.Channels.Select(x => $"{x.Statistic!.FailCount}/{x.Statistic.TotalCount}"))}]");
+                double failChance = (double)process.Statistic.FailsCount / process.Statistic.TotalCount;
+                Console.WriteLine($"{process.Name} stats: {failChance} ({process.Statistic.FailsCount}/{process.Statistic.TotalCount}) | [{string.Join(", ", process.Channels.Select(x => $"{x.Statistic!.FailsCount}/{x.Statistic.TotalCount}"))}]");
             }
         }
     }
