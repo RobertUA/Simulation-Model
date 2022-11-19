@@ -23,7 +23,7 @@ public static class Distribution
     {
         if (rand == null) rand = () => Random.Shared.NextDouble();
         //double rand = Random.Shared.NextDouble();
-        return -1 / l * Math.Log10(rand());
+        return (-1 / l) * Math.Log10(rand());
     }
     public static double Gaus(double a, double q, Func<double>? rand = null)
     {
@@ -39,10 +39,5 @@ public static class Distribution
     {
         if (rand == null) rand = () => Random.Shared.NextDouble();
         return min + (max - min) * rand();
-    }
-    public static int Range(int min, int max, Func<double>? rand = null)
-    {
-        if (rand == null) rand = () => Random.Shared.NextDouble();
-        return min + (int)Math.Ceiling((max - min) * rand());
     }
 }
