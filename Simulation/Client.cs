@@ -4,15 +4,24 @@ public class Client
 {
     public Create Create;
     public int Type;
-    public double CreateTime;
     public double DesposeTime;
+    //
+    public double CreateTime;
     public bool Fail = false;
     public Timeline Timeline = new();
-    public Client(double createTime, int type, Create create) // OnCreate
+    public Client(int type, Create create) // OnCreate
     {
         Create = create;
-        CreateTime = createTime;
         Type = type;
+    }
+    public Client(Client client)
+    {
+        Create = client.Create;
+        Type = client.Type;
+    }
+    public void OnCreate(double createTime)
+    {
+        CreateTime = createTime;
     }
     public void OnDespose(double desposeTime)
     {

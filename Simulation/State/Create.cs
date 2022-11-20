@@ -4,38 +4,42 @@ public class Create : State, ITimeEvent
 {
     private double _startTime;
     private double _endTime = -1;
-    private readonly int _clientType;
     private readonly Func<double> _randFunc;
+    public readonly Client Client;
     public double EndTime => _endTime;
     public double StartTime => _startTime;
     public string Info
     {
-        get { return $"{Name} | Client: {_clientType}"; }
+        get { return $"{Name} | Client: {Client.Type}"; }
     }
-    public Create(Model model, string name, Func<double> randFunc, int clientType=1) : base(name, model)
+    public Create(Model model, string name, Func<double> randFunc, Client? client = null): base(name, model)
     {
         _randFunc = randFunc;
-        _clientType = clientType;
+        Client = client ?? new Client(1, this);
+    }
+    public void Start(double startTime, double endTime)
+    {
+        _startTime = startTime;
+        _endTime = endTime;
+        Model.Closest.Enqueue(this, _endTime);
+        //Console.WriteLine($"Start {State.Name} (must end at: {TimeEnd})");
     }
     public void Start(double startTime)
     {
-        _startTime = startTime;
-        double workTime = _randFunc();
-        _endTime = StartTime + workTime;
-        Model.Closest.Enqueue(this, EndTime);
-        //Console.WriteLine($"Start {State.Name} (must end at: {TimeEnd})");
+        Start(startTime,startTime + _randFunc());
     }
     public void End()
     {
-        Start(EndTime);
-        Client newClient = new (EndTime, _clientType, this);
+        Start(_endTime);
+        Client newClient = new (Client);
+        newClient.OnCreate(_endTime);
         Model.Clients.Add(newClient);
         foreach (var transition in Transitions)
         {
             Process? nextState = transition.GetTransitionProcess(newClient);
             if (nextState != null)
             {
-                nextState.TryStartChannel(EndTime, newClient);
+                nextState.TryStartChannel(_endTime, newClient);
             }
         }
     }

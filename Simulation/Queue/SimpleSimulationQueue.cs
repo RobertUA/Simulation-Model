@@ -4,7 +4,11 @@ public class SimpleSimulationQueue : ISimulationQueue
 {
     private readonly Queue<Client> _queue = new();
     private readonly int _maxSize;
-    public SimpleSimulationQueue(int maxSize=int.MaxValue)
+    public SimpleSimulationQueue()
+    {
+        _maxSize = int.MaxValue;
+    }
+    public SimpleSimulationQueue(int maxSize)
     {
         _maxSize = maxSize;
     }

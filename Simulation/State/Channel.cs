@@ -6,7 +6,7 @@ public class Channel : ITimeEvent
     public Func<double> RandFunc;
     //
     public int Id;
-    public ISimulationQueue? StateQueue;
+    public ISimulationQueue? Queue;
     public Client? Client = null;
     //
     public Statistic Statistic = new();
@@ -21,9 +21,10 @@ public class Channel : ITimeEvent
     public Channel(Process process, Func<double> randFunc, ISimulationQueue? queue = null)
     {
         Process = process;
+        Id = Process.Channels.Count;
         Process.Channels.Add(this);
         RandFunc = randFunc;
-        StateQueue = queue;
+        Queue = queue;
     }
     public bool TryStart(double startTime, Client client)
     {
@@ -37,27 +38,30 @@ public class Channel : ITimeEvent
     }
     public bool TryAddToQueue(Client client)
     {
-        if (StateQueue!=null && StateQueue.Count < StateQueue.MaxSize)
+        if (Queue!=null && Queue.Count < Queue.MaxSize)
         {
             Statistic.AdditionsToQueueCount++;
-            StateQueue.Enqueue(client);
+            Queue.Enqueue(client);
             return true;
         }
         Statistic.FailsCount++;
         client.OnFail();
         return false;
     }
-    private void Start(double startTime, Client client)
+    public void Start(double startTime, double endTime, Client client)
     {
         Statistic.StartsCount++;
         Client = client;
         _startTime = startTime;
-        double workTime = RandFunc();
-        _endTime = StartTime + workTime;
+        _endTime = endTime;
         Process.Model.Closest.Enqueue(this, EndTime);
         //
         Process.OnChannelStart();
         //Console.WriteLine($"Start {State.Name} (must end at: {TimeEnd})");
+    }
+    public void Start(double startTime, Client client)
+    {
+        Start(startTime, startTime + RandFunc(), client);
     }
     public void End()
     {
@@ -75,9 +79,9 @@ public class Channel : ITimeEvent
             }
         }
         //
-        if (StateQueue != null && StateQueue.Count > 0)
+        if (Queue != null && Queue.Count > 0)
         {
-            Start(EndTime, StateQueue.Dequeue()!);
+            Start(EndTime, Queue.Dequeue()!);
         }
         else
         {

@@ -25,7 +25,17 @@ public class Model
             if (process.Statistic != null)
             {
                 double failChance = (double)process.Statistic.FailsCount / process.Statistic.TotalCount;
-                Console.WriteLine($"{process.Name} stats: {failChance} ({process.Statistic.FailsCount}/{process.Statistic.TotalCount}) | [{string.Join(", ", process.Channels.Select(x => $"{x.Statistic!.FailsCount}/{x.Statistic.TotalCount}"))}]");
+                double workloadPercent = process.Timeline.WorkloadTime / process.Timeline.TotalTime;
+                Console.WriteLine($"==== {process.Name} stats: {failChance} ({process.Statistic.FailsCount}/{process.Statistic.TotalCount})" +
+                    $"\tWorkload: {workloadPercent} ({process.Timeline.WorkloadTime} / {process.Timeline.TotalTime})");
+
+                foreach (var channel in process.Channels)
+                {
+                    failChance = (double)channel.Statistic.FailsCount / channel.Statistic.TotalCount;
+                    workloadPercent = channel.Timeline.WorkloadTime / channel.Timeline.TotalTime;
+                    Console.WriteLine($"Channel {channel.Id}) stats: {failChance} ({channel.Statistic!.FailsCount}/{channel.Statistic.TotalCount})" +
+                    $"\tWorkload: {workloadPercent} ({channel.Timeline.WorkloadTime} / {channel.Timeline.TotalTime})");
+                }
             }
         }
     }
@@ -42,7 +52,7 @@ public class Model
         {
             if (state.Statistic != null)
             {
-                Console.WriteLine($"{state.Name} | Channels: [{string.Join(';', state.Channels.Select(x => x.Client!=null ? x.Client.Type : 0))}] | Queues: [{string.Join(';', state.Channels.Select(x => x.StateQueue != null ? x.StateQueue.Count : 0))}]");
+                Console.WriteLine($"{state.Name} | Channels: [{string.Join(';', state.Channels.Select(x => x.Client!=null ? x.Client.Type : 0))}] | Queues: [{string.Join(';', state.Channels.Select(x => x.Queue != null ? x.Queue.Count : 0))}]");
                 //Console.Write($"{state.Name} - [");
                 //foreach (var channel in state.Channels)
                 //{

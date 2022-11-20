@@ -6,14 +6,15 @@ public class Process : State
     public readonly List<ITransition> FailTransitions = new();
     public Statistic Statistic = new();
     public Timeline Timeline = new();
-    private Action<Process>? _beforeAction = null;
+
+    private Action? _beforeAction = null;
     public Process(Model model, string name) : base(name, model)
     {
         Model = model;
         Model.Processes.Add(this);
         Name = name;
     }
-    public void SetBeforeAction(Action<Process> beforeAction)
+    public void SetBeforeAction(Action beforeAction)
     {
         _beforeAction = beforeAction;
     }
@@ -22,7 +23,7 @@ public class Process : State
         Statistic.TotalCount++;
         if (_beforeAction != null)
         {
-            _beforeAction.Invoke(this);
+            _beforeAction.Invoke();
         }
         foreach (var channel in Channels)
         {
@@ -35,7 +36,6 @@ public class Process : State
                 return true;
             }
         }
-        //Process Queue TODO
         Statistic.FailsCount++;
         foreach (var failTransition in FailTransitions)
         {
