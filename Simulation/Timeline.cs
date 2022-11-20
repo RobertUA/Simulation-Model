@@ -14,7 +14,7 @@ public class Timeline
             Count = count;
         }
     }
-    private Segment _lastSegment;
+    private Segment _lastSegment = new Segment(0,0,0);
     private double _workLoadTime = 0;
     private double _waitTime = 0;
     private readonly Stack<Segment> _segments = new(new Segment[] { new Segment(0, 0) });

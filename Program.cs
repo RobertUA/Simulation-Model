@@ -111,7 +111,7 @@ static void Lab3()
 
         create.Start(0, 0.1);
 
-        model.Simulate(100, true);
+        model.Simulate(1000000);
     }
 }
 
