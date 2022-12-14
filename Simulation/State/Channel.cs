@@ -38,10 +38,9 @@ public class Channel : ITimeEvent
     }
     public bool TryAddToQueue(Client client)
     {
-        if (Queue!=null && Queue.Count < Queue.MaxSize)
+        if (Queue!=null && Queue.Enqueue(client))
         {
             Statistic.AdditionsToQueueCount++;
-            Queue.Enqueue(client);
             return true;
         }
         Statistic.FailsCount++;

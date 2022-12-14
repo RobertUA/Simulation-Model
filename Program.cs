@@ -3,7 +3,8 @@ using RobRandom;
 
 //Lab1();
 //Lab2();
-Lab3();
+//Lab3();
+Nikita();
 
 static void Lab1()
 {
@@ -115,6 +116,58 @@ static void Lab3()
     }
 }
 
+static void Nikita()
+{
+    Model model = new();
+    Create create = new(model, "Creator", () => Distribution.Range(5, 15));
+
+    SimpleSimulationQueue abQueue = new(20);
+    ConditionalSimulationQueue bc1Queue = new();
+    ConditionalSimulationQueue bc2Queue = new();
+
+    int totalBoostCheckCount = 0;
+    int boostCount = 0;
+
+    bool BoostCheck()
+    {
+        totalBoostCheckCount++;
+        if (bc1Queue.Count + bc2Queue.Count >= 20)
+        {
+            boostCount++;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    bool CanAddToQueue() => bc1Queue.Count + bc2Queue.Count < 25;
+
+    Process ab1 = new(model, "AB1");
+    Channel ab1Channel = new(ab1, () => 20, abQueue); 
+    Process ab2 = new(model, "AB2");
+    Channel ab2Channel = new(ab2, () => Distribution.Range(15, 25), abQueue);
+
+    bc1Queue.SetCondition(CanAddToQueue);
+    bc2Queue.SetCondition(CanAddToQueue);
+
+    Process bc1 = new(model, "BC1");
+    Channel bc1Channel = new(bc1, () => BoostCheck() ? 15 : Distribution.Range(23, 28), bc1Queue);
+    Process bc2 = new(model, "BC2");
+    Channel bc2Channel = new(bc2, () => BoostCheck() ? 15 : 20, bc2Queue);
+
+    create.Transitions.Add(new TransitionConditional(
+        (ab1, (_) => ab1.Channels[0].Client == null),
+        (ab2, (_) => true)));
+    ab1.Transitions.Add(new TransitionSimple(bc1));
+    ab2.Transitions.Add(new TransitionSimple(bc2));
+
+    create.Start(0);
+    model.Simulate(100000, true);
+
+    Console.WriteLine($"BoostStat: {(float)boostCount/totalBoostCheckCount} ({boostCount}/{totalBoostCheckCount})");
+}
+
 static int ChannelComparison(Channel x, Channel y)
 {
     if (x.Queue == null && y.Queue == null) return 0;
@@ -134,7 +187,7 @@ static void BalanceQueues(Process state)
     for (int i = 0; i < state.Channels.Count; i++)
 	{
 		if(state.Channels[i].Queue != null 
-			&& state.Channels[i].Queue!.Count == state.Channels[i].Queue!.MaxSize)
+			&& state.Channels[i].Queue!.Count == ((SimpleSimulationQueue) state.Channels[i].Queue!).MaxSize)
 		{
 			for (int j = 0; j < state.Channels.Count; j++)
 			{

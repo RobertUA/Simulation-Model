@@ -3,7 +3,7 @@
 public class TransitionFirst : ITransition
 {
     private readonly ITransition[] _transitions;
-    public TransitionFirst(ITransition[] transitions)
+    public TransitionFirst(params ITransition[] transitions)
     {
         _transitions = transitions;
     }

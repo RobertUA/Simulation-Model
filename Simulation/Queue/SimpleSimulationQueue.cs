@@ -20,9 +20,11 @@ public class SimpleSimulationQueue : ISimulationQueue
         if (_queue.Count == 0) return null;
         return _queue.Dequeue();
     }
-    public void Enqueue(Client client)
+    public bool Enqueue(Client client)
     {
+        if (_queue.Count == MaxSize) return false;
         _queue.Enqueue(client);
+        return true;
     }
     public Client? Peek()
     {

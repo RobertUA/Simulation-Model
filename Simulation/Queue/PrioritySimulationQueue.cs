@@ -19,9 +19,11 @@ public class PrioritySimulationQueue: ISimulationQueue
         if (result != null) _list.Remove(result);
         return result;
     }
-    public void Enqueue(Client client)
+    public bool Enqueue(Client client)
     {
+        if (_maxSize == _list.Count) return false;
         _list.Add(client);
+        return true;
     }
     public Client? Peek()
     {
