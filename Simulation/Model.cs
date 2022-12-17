@@ -19,6 +19,10 @@ public class Model
             _currentChannel = Closest.Dequeue();
             _currentTime = _currentChannel.EndTime;
         }
+        PrintEndInfo();
+    }
+    public void PrintEndInfo()
+    {
         Console.WriteLine("------------------------ [END] ------------------------");
         foreach (var process in Processes)
         {
@@ -29,12 +33,15 @@ public class Model
                 Console.WriteLine($"==== {process.Name} stats: {failChance} ({process.Statistic.FailsCount}/{process.Statistic.TotalCount})" +
                     $"\tWorkload: {workloadPercent} ({process.Timeline.WorkloadTime} / {process.Timeline.TotalTime})");
 
-                foreach (var channel in process.Channels)
+                if (process.Channels.Count > 1)
                 {
-                    failChance = (double)channel.Statistic.FailsCount / channel.Statistic.TotalCount;
-                    workloadPercent = channel.Timeline.WorkloadTime / channel.Timeline.TotalTime;
-                    Console.WriteLine($"Channel {channel.Id}) stats: {failChance} ({channel.Statistic!.FailsCount}/{channel.Statistic.TotalCount})" +
-                    $"\tWorkload: {workloadPercent} ({channel.Timeline.WorkloadTime} / {channel.Timeline.TotalTime})");
+                    foreach (var channel in process.Channels)
+                    {
+                        failChance = (double)channel.Statistic.FailsCount / channel.Statistic.TotalCount;
+                        workloadPercent = channel.Timeline.WorkloadTime / channel.Timeline.TotalTime;
+                        Console.WriteLine($"Channel {channel.Id}) stats: {failChance} ({channel.Statistic!.FailsCount}/{channel.Statistic.TotalCount})" +
+                        $"\tWorkload: {workloadPercent} ({channel.Timeline.WorkloadTime} / {channel.Timeline.TotalTime})");
+                    }
                 }
             }
         }

@@ -6,7 +6,7 @@ public class Channel : ITimeEvent
     public Func<double> RandFunc;
     //
     public int Id;
-    public ISimulationQueue? Queue;
+    public SimulationQueueBase? Queue;
     public Client? Client = null;
     //
     public Statistic Statistic = new();
@@ -18,7 +18,7 @@ public class Channel : ITimeEvent
         => $"Channel {Id} of {Process.Name} | Client: {(Client != null ? Client.Type : "null")}";
     public double EndTime => _endTime;
     public double StartTime => _startTime;
-    public Channel(Process process, Func<double> randFunc, ISimulationQueue? queue = null)
+    public Channel(Process process, Func<double> randFunc, SimulationQueueBase? queue = null)
     {
         Process = process;
         Id = Process.Channels.Count;
@@ -38,9 +38,9 @@ public class Channel : ITimeEvent
     }
     public bool TryAddToQueue(Client client)
     {
-        if (Queue!=null && Queue.Enqueue(client))
+        if (Queue!=null && Queue.TryEnqueue(client))
         {
-            Statistic.AdditionsToQueueCount++;
+            //Statistic.AdditionsToQueueCount++;
             return true;
         }
         Statistic.FailsCount++;
@@ -49,7 +49,7 @@ public class Channel : ITimeEvent
     }
     public void Start(double startTime, double endTime, Client client)
     {
-        Statistic.StartsCount++;
+        Statistic.SuccessCount++;
         Client = client;
         _startTime = startTime;
         _endTime = endTime;

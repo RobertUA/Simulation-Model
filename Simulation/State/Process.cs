@@ -47,7 +47,7 @@ public class Process : State
     //
     public void OnChannelStart()
     {
-        Statistic.StartsCount++;
+        Statistic.SuccessCount++;
     }
     public void OnChannelEnd(double startTime, double endTime)
     {

@@ -1,6 +1,6 @@
 ﻿namespace Simulation;
 
-public class PrioritySimulationQueue: ISimulationQueue
+public class PrioritySimulationQueue: SimulationQueueBase
 {
     private readonly List<Client> _list = new ();
     private readonly int _maxSize;
@@ -10,22 +10,24 @@ public class PrioritySimulationQueue: ISimulationQueue
         _maxSize = maxSize;
         _comparer = comparer;
     }
-    public int Count => _list.Count;
+    public override int Count => _list.Count;
     public int MaxSize => _maxSize;
 
-    public Client? Dequeue()
+    public override Client? Dequeue()
     {
         Client? result = _list.Min(_comparer);
         if (result != null) _list.Remove(result);
         return result;
     }
-    public bool Enqueue(Client client)
+    protected override bool CheckEnqueue(Client client)
     {
-        if (_maxSize == _list.Count) return false;
-        _list.Add(client);
-        return true;
+        return _list.Count < _maxSize;
     }
-    public Client? Peek()
+    protected override void Enqueue(Client client)
+    {
+        _list.Add(client);
+    }
+    public override Client? Peek()
     {
         return _list.Max(_comparer);
     }

@@ -101,12 +101,12 @@ static void Lab3()
         Channel channel2 = new(process, () => Distribution.Exponential(0.3), new SimpleSimulationQueue(3));
 
         channel1.Start(0, Distribution.Gaus(1, 0.3), new Client(create.Client));
-        channel1.Queue!.Enqueue(new Client(create.Client));
-        channel1.Queue!.Enqueue(new Client(create.Client));
+        channel1.Queue!.TryEnqueue(new Client(create.Client));
+        channel1.Queue!.TryEnqueue(new Client(create.Client));
 
         channel2.Start(0, Distribution.Gaus(1, 0.3), new Client(create.Client));
-        channel2.Queue!.Enqueue(new Client(create.Client));
-        channel2.Queue!.Enqueue(new Client(create.Client));
+        channel2.Queue!.TryEnqueue(new Client(create.Client));
+        channel2.Queue!.TryEnqueue(new Client(create.Client));
 
         create.Transitions.Add(new TransitionSimple(process));
 
@@ -163,9 +163,12 @@ static void Nikita()
     ab2.Transitions.Add(new TransitionSimple(bc2));
 
     create.Start(0);
-    model.Simulate(100000, true);
+    model.Simulate(10000000, false);
 
     Console.WriteLine($"BoostStat: {(float)boostCount/totalBoostCheckCount} ({boostCount}/{totalBoostCheckCount})");
+    Console.WriteLine($"abQueue = {abQueue.GetStats()}");
+    Console.WriteLine($"bc1Queue = {bc1Queue.GetStats()}");
+    Console.WriteLine($"bc2Queue = {bc2Queue.GetStats()}");
 }
 
 static int ChannelComparison(Channel x, Channel y)
@@ -194,7 +197,7 @@ static void BalanceQueues(Process state)
 				if(state.Channels[j].Queue != null
 					&& state.Channels[i].Queue!.Count - state.Channels[j].Queue!.Count >= 2)
 				{
-					state.Channels[j].Queue!.Enqueue(state.Channels[i].Queue!.Dequeue()!);
+					state.Channels[j].Queue!.TryEnqueue(state.Channels[i].Queue!.Dequeue()!);
 					break;
 				}
 			}

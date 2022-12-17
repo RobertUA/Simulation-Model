@@ -1,6 +1,6 @@
 ﻿namespace Simulation;
 
-public class ConditionalSimulationQueue : ISimulationQueue
+public class ConditionalSimulationQueue : SimulationQueueBase
 {
     private readonly Queue<Client> _queue = new();
     private Func<bool> _condition;
@@ -16,21 +16,24 @@ public class ConditionalSimulationQueue : ISimulationQueue
     {
         _condition = condition;
     }
-    public int Count => _queue.Count;
+    public override int Count => _queue.Count;
 
-    public Client? Dequeue()
+    public override Client? Dequeue()
     {
         if (_queue.Count == 0) return null;
         return _queue.Dequeue();
     }
-    public bool Enqueue(Client client)
+    protected override bool CheckEnqueue(Client client)
     {
-        if (_condition.Invoke() == false) return false;
-        _queue.Enqueue(client);
-        return true;
+        return _condition.Invoke();
     }
-    public Client? Peek()
+    protected override void Enqueue(Client client)
     {
-        throw new NotImplementedException();
+        _queue.Enqueue(client);
+    }
+    public override Client? Peek()
+    {
+        if(_queue.Count == 0) return null;
+        return _queue.Peek();
     }
 }

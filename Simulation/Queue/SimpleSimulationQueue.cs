@@ -1,6 +1,6 @@
 ﻿namespace Simulation;
 
-public class SimpleSimulationQueue : ISimulationQueue
+public class SimpleSimulationQueue : SimulationQueueBase
 {
     private readonly Queue<Client> _queue = new();
     private readonly int _maxSize;
@@ -12,21 +12,23 @@ public class SimpleSimulationQueue : ISimulationQueue
     {
         _maxSize = maxSize;
     }
-    public int Count => _queue.Count;
+    public override int Count => _queue.Count;
     public int MaxSize => _maxSize;
 
-    public Client? Dequeue()
+    public override Client? Dequeue()
     {
         if (_queue.Count == 0) return null;
         return _queue.Dequeue();
     }
-    public bool Enqueue(Client client)
+    protected override bool CheckEnqueue(Client client)
     {
-        if (_queue.Count == MaxSize) return false;
-        _queue.Enqueue(client);
-        return true;
+        return _queue.Count < _maxSize;
     }
-    public Client? Peek()
+    protected override void Enqueue(Client client)
+    {
+        _queue.Enqueue(client);
+    }
+    public override Client? Peek()
     {
         if (_queue.Count == 0) return null;
         return _queue.Peek();
