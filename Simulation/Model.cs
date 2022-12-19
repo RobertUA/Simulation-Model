@@ -5,6 +5,8 @@ public class Model
     public HashSet<Client> Clients = new();
     public HashSet<Process> Processes = new();
     public PriorityQueue<ITimeEvent, double> Closest = new();
+    public Statistic Statistic = new Statistic();
+    public Timeline Timeline = new Timeline();
     private double _currentTime;
     private ITimeEvent? _currentChannel;
     public void Simulate(double totalTime, bool printSteps=false)
@@ -14,12 +16,12 @@ public class Model
         while (_currentTime < totalTime)
         {
             _currentChannel.End();
-            if(printSteps) PrintInfo();
+            if(printSteps) PrintStepInfo();
 
             _currentChannel = Closest.Dequeue();
             _currentTime = _currentChannel.EndTime;
         }
-        PrintEndInfo();
+        //PrintEndInfo();
     }
     public void PrintEndInfo()
     {
@@ -46,7 +48,7 @@ public class Model
             }
         }
     }
-    public void PrintInfo()
+    public void PrintStepInfo()
     {
         if (Processes == null) return;
         Console.WriteLine($"\n------------------------ [{_currentTime}] ------------------------");

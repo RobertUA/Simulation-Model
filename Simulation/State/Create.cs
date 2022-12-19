@@ -15,7 +15,8 @@ public class Create : State, ITimeEvent
     public Create(Model model, string name, Func<double> randFunc, Client? client = null): base(name, model)
     {
         _randFunc = randFunc;
-        Client = client ?? new Client(1, this);
+        Client = client ?? new Client(1);
+        Client.Create = this;
     }
     public void Start(double startTime, double endTime)
     {

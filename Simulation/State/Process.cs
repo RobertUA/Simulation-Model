@@ -21,6 +21,7 @@ public class Process : State
     public bool TryStartChannel(double startTime, Client client)
     {
         Statistic.TotalCount++;
+        Model.Statistic.TotalCount++;
         if (_beforeAction != null)
         {
             _beforeAction.Invoke();
@@ -36,6 +37,7 @@ public class Process : State
                 return true;
             }
         }
+        Model.Statistic.FailsCount++;
         Statistic.FailsCount++;
         foreach (var failTransition in FailTransitions)
         {
@@ -52,5 +54,6 @@ public class Process : State
     public void OnChannelEnd(double startTime, double endTime)
     {
         Timeline.Add(startTime, endTime);
+        Model.Timeline.Add(startTime, endTime);
     }
 }

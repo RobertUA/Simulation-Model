@@ -3,8 +3,8 @@ using RobRandom;
 
 //Lab1();
 //Lab2();
-//Lab3();
-Nikita();
+Lab3();
+Console.Beep();
 
 static void Lab1()
 {
@@ -88,13 +88,26 @@ static void Lab3()
     Task2();
     static void Task2()
     {
+        int desposeCount = 0;
+        double lastDesposeTime = 0;
+        double desposeTimeSum = 0;
+        int queueChangeCount = 0;
         Model model = new();
 
-        Create create = new(model, "Create", () => Distribution.Exponential(0.5));
+        Client templateClient = new Client(0);
+        templateClient.OnDesposeAction = new ((client) => 
+        {
+            desposeCount++;
+            if (lastDesposeTime == 0) lastDesposeTime = client.DesposeTime;
+            desposeTimeSum += client.DesposeTime - lastDesposeTime;
+            lastDesposeTime = client.DesposeTime;
+        });
+
+        Create create = new(model, "Create", () => Distribution.Exponential(0.5), templateClient);
         Process process = new (model, "Process");
         process.SetBeforeAction(() =>
         {
-            BalanceQueues(process);
+            BalanceQueues(process, ref queueChangeCount);
             ChannelsSort(process);
         });
         Channel channel1 = new(process, () => Distribution.Exponential(0.3), new SimpleSimulationQueue(3));
@@ -113,62 +126,24 @@ static void Lab3()
         create.Start(0, 0.1);
 
         model.Simulate(1000000);
+
+        Console.WriteLine("1) ================" +
+            $"\nC1: Avg count = {channel1.Timeline.AvarageCount}; Workload = {channel1.Timeline.WorkloadPercent} ({channel1.Timeline.WorkloadTime}/{channel1.Timeline.TotalTime}" +
+            $"\nC2: Avg count = {channel2.Timeline.AvarageCount}; Workload = {channel2.Timeline.WorkloadPercent} ({channel2.Timeline.WorkloadTime}/{channel2.Timeline.TotalTime}");
+        Console.WriteLine("2) ================" +
+            $"\nAvg client count = {model.Timeline.AvarageCount}");
+        Console.WriteLine("3) ================" +
+            $"\nAvg time beetween clients despose = {desposeTimeSum/desposeCount} ({desposeTimeSum}/{desposeCount})");
+        Console.WriteLine("4) ================" +
+            $"\nAvg client time = {model.Timeline.AvarageTime}");
+        Console.WriteLine("5) ================" +
+            $"\nAvg С1 queue count = {channel1.Queue.Timeline.AvarageCount}" + 
+            $"\nAvg С2 queue count = {channel2.Queue.Timeline.AvarageCount}");
+        Console.WriteLine("6) ================" +
+            $"\nClient fail = {(double)model.Statistic.FailsCount/model.Clients.Count} ({model.Statistic.FailsCount}/{model.Clients.Count})");
+        Console.WriteLine("7) ================" +
+            $"\nQueue change count = {queueChangeCount}");
     }
-}
-
-static void Nikita()
-{
-    Model model = new();
-    Create create = new(model, "Creator", () => Distribution.Range(5, 15));
-
-    SimpleSimulationQueue abQueue = new(20);
-    ConditionalSimulationQueue bc1Queue = new();
-    ConditionalSimulationQueue bc2Queue = new();
-
-    int totalBoostCheckCount = 0;
-    int boostCount = 0;
-
-    bool BoostCheck()
-    {
-        totalBoostCheckCount++;
-        if (bc1Queue.Count + bc2Queue.Count >= 20)
-        {
-            boostCount++;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    bool CanAddToQueue() => bc1Queue.Count + bc2Queue.Count < 25;
-
-    Process ab1 = new(model, "AB1");
-    Channel ab1Channel = new(ab1, () => 20, abQueue); 
-    Process ab2 = new(model, "AB2");
-    Channel ab2Channel = new(ab2, () => Distribution.Range(15, 25), abQueue);
-
-    bc1Queue.SetCondition(CanAddToQueue);
-    bc2Queue.SetCondition(CanAddToQueue);
-
-    Process bc1 = new(model, "BC1");
-    Channel bc1Channel = new(bc1, () => BoostCheck() ? 15 : Distribution.Range(23, 28), bc1Queue);
-    Process bc2 = new(model, "BC2");
-    Channel bc2Channel = new(bc2, () => BoostCheck() ? 15 : 20, bc2Queue);
-
-    create.Transitions.Add(new TransitionConditional(
-        (ab1, (_) => ab1.Channels[0].Client == null),
-        (ab2, (_) => true)));
-    ab1.Transitions.Add(new TransitionSimple(bc1));
-    ab2.Transitions.Add(new TransitionSimple(bc2));
-
-    create.Start(0);
-    model.Simulate(10000000, false);
-
-    Console.WriteLine($"BoostStat: {(float)boostCount/totalBoostCheckCount} ({boostCount}/{totalBoostCheckCount})");
-    Console.WriteLine($"abQueue = {abQueue.GetStats()}");
-    Console.WriteLine($"bc1Queue = {bc1Queue.GetStats()}");
-    Console.WriteLine($"bc2Queue = {bc2Queue.GetStats()}");
 }
 
 static int ChannelComparison(Channel x, Channel y)
@@ -184,7 +159,7 @@ static void ChannelsSort(Process state)
     state.Channels.Sort(ChannelComparison);
 }
 
-static void BalanceQueues(Process state)
+static void BalanceQueues(Process state, ref int changeCount)
 {
 	ChannelsSort(state);
     for (int i = 0; i < state.Channels.Count; i++)
@@ -197,6 +172,7 @@ static void BalanceQueues(Process state)
 				if(state.Channels[j].Queue != null
 					&& state.Channels[i].Queue!.Count - state.Channels[j].Queue!.Count >= 2)
 				{
+                    changeCount++;
 					state.Channels[j].Queue!.TryEnqueue(state.Channels[i].Queue!.Dequeue()!);
 					break;
 				}

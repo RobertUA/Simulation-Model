@@ -2,6 +2,7 @@
 
 public abstract class SimulationQueueBase
 {
+    public Timeline Timeline = new Timeline();
     public Statistic Statistic = new ();
     public bool TryEnqueue(Client client)
     {

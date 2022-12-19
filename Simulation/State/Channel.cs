@@ -38,9 +38,17 @@ public class Channel : ITimeEvent
     }
     public bool TryAddToQueue(Client client)
     {
-        if (Queue!=null && Queue.TryEnqueue(client))
+        if (Queue != null && Queue.TryEnqueue(client))
         {
             //Statistic.AdditionsToQueueCount++;
+            double startTime = Queue.Timeline.LastSegment.EndTime;
+            for (int i = 0; i < Queue.Count-1; i++)
+            {
+                Queue.Timeline.Add(startTime, _endTime);
+                Timeline.Add(startTime, _endTime);
+                Process.Timeline.Add(startTime, _endTime);
+                Process.Model.Timeline.Add(startTime, _endTime);
+            }
             return true;
         }
         Statistic.FailsCount++;
@@ -80,7 +88,17 @@ public class Channel : ITimeEvent
         //
         if (Queue != null && Queue.Count > 0)
         {
-            Start(EndTime, Queue.Dequeue()!);
+            double startTime = Queue.Timeline.LastSegment.EndTime;
+            for (int i = 0; i < Queue.Count; i++)
+            {
+                Queue.Timeline.Add(startTime, _endTime);
+                Timeline.Add(startTime, _endTime);
+                Process.Timeline.Add(startTime, _endTime);
+                Process.Model.Timeline.Add(startTime, _endTime);
+            }
+
+            Client client = Queue.Dequeue()!;
+            Start(EndTime, client);
         }
         else
         {
