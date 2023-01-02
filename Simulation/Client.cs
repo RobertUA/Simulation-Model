@@ -10,7 +10,7 @@ public class Client
     public bool Fail = false;
     public Timeline Timeline = new();
     public Action<Client>? OnDesposeAction = null;
-    public Client(int type)
+    public Client(int type=0)
     {
         Type = type;
     }
@@ -19,6 +19,7 @@ public class Client
         Create = client.Create;
         Type = client.Type;
         OnDesposeAction = client.OnDesposeAction;
+        //Console.WriteLine($"new Client | type = {Type}");
     }
     public void OnCreate(double createTime)
     {

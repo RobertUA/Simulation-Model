@@ -8,6 +8,7 @@ public class Create : State, ITimeEvent
     public readonly Client Client;
     public double EndTime => _endTime;
     public double StartTime => _startTime;
+    public Action? BeforeAction = null;
     public string Info
     {
         get { return $"{Name} | Client: {Client.Type}"; }
@@ -27,10 +28,13 @@ public class Create : State, ITimeEvent
     }
     public void Start(double startTime)
     {
-        Start(startTime,startTime + _randFunc());
+        double time = _randFunc();
+        if (time <= 0) time = double.Epsilon;
+        Start(startTime, startTime + time);
     }
     public void End()
     {
+        BeforeAction?.Invoke();
         Start(_endTime);
         Client newClient = new (Client);
         newClient.OnCreate(_endTime);

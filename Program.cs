@@ -61,18 +61,18 @@ static void Lab2()
 
     Process process1 = new(model, "Process-1");
     process1.SetBeforeAction(() => ChannelsSort(process1));
-    Channel process1channel1 = new(process1, () => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
-    Channel process1channel2 = new(process1, () => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
+    Channel process1channel1 = new(process1, (_) => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
+    Channel process1channel2 = new(process1, (_) => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
 
     Process process2 = new(model, "Process-2");
     process2.SetBeforeAction(() => ChannelsSort(process2));
-    Channel process2channel1 = new(process2, () => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
-    Channel process2channel2 = new(process2, () => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
+    Channel process2channel1 = new(process2, (_) => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
+    Channel process2channel2 = new(process2, (_) => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
 
     Process process3 = new(model, "Process-3");
     process3.SetBeforeAction(() => ChannelsSort(process3));
-    Channel process3channel1 = new(process3, () => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
-    Channel process3channel2 = new(process3, () => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
+    Channel process3channel1 = new(process3, (_) => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
+    Channel process3channel2 = new(process3, (_) => Random.Shared.NextDouble(), new SimpleSimulationQueue(2));
 
     create.Transitions.Add(new TransitionSimple(process1));
     process1.Transitions.Add(new TransitionSimple(process2));
@@ -85,7 +85,8 @@ static void Lab2()
 
 static void Lab3()
 {
-    Task2();
+    //Task2();
+    Task3();
     static void Task2()
     {
         int desposeCount = 0;
@@ -110,8 +111,8 @@ static void Lab3()
             BalanceQueues(process, ref queueChangeCount);
             ChannelsSort(process);
         });
-        Channel channel1 = new(process, () => Distribution.Exponential(0.3), new SimpleSimulationQueue(3));
-        Channel channel2 = new(process, () => Distribution.Exponential(0.3), new SimpleSimulationQueue(3));
+        Channel channel1 = new(process, (_) => Distribution.Exponential(0.3), new SimpleSimulationQueue(3));
+        Channel channel2 = new(process, (_) => Distribution.Exponential(0.3), new SimpleSimulationQueue(3));
 
         channel1.Start(0, Distribution.Gaus(1, 0.3), new Client(create.Client));
         channel1.Queue!.TryEnqueue(new Client(create.Client));
@@ -143,6 +144,89 @@ static void Lab3()
             $"\nClient fail = {(double)model.Statistic.FailsCount/model.Clients.Count} ({model.Statistic.FailsCount}/{model.Clients.Count})");
         Console.WriteLine("7) ================" +
             $"\nQueue change count = {queueChangeCount}");
+    }
+    static void Task3()
+    {
+        int ClientComparison(Client a, Client b)
+        {
+            if (a.Type == 1 && b.Type != 1) return 1;
+            else if (a.Type != 1 && b.Type == 1) return -1;
+            else return 0;
+        }
+        Model model = new();
+        Client createClient = new();
+        Create create = new(model, "Create", () => Distribution.Exponential(15), createClient);
+        create.BeforeAction = () =>
+        {
+            createClient.Type = Distribution.RangeInteger(1, 3);
+            //Console.WriteLine($"rand Type = {createClient.Type}");
+        };
+        PrioritySimulationQueue receptionQueue = new(Comparer<Client>.Create((a, b) => ClientComparison(a, b)));
+
+        Process reception = new(model, "Reception");
+        double RandClient(Client client)
+        {
+            switch (client.Type)
+            {
+                case 1:
+                    return Distribution.Exponential(15);
+                case 2:
+                    return Distribution.Exponential(40);
+                case 3:
+                    return Distribution.Exponential(30);
+                default:
+                    return 0;
+            }
+        }
+        Channel[] doctors = new Channel[2];
+        for (int i = 0; i < doctors.Length; i++)
+        {
+            doctors[i] = new(reception, RandClient, receptionQueue);
+        }
+
+        SimpleSimulationQueue escortingQueue = new();
+        Process escorting = new(model, "Escorting");
+        Channel[] escorts = new Channel[3];
+        for (int i = 0; i < escorts.Length; i++)
+        {
+            escorts[i] = new Channel(escorting, (_) => Distribution.RangeDouble(3, 8), escortingQueue);
+        }
+
+        SimpleSimulationQueue registationQueue = new();
+        Process registration = new(model, "Registration");
+        Channel registrator = new(registration, (_) => Distribution.Erlang(4.5, 3), registationQueue);
+
+        SimpleSimulationQueue labQueue = new();
+        Process labTest = new(model, "Laboratory");
+        Channel[] labs = new Channel[2];
+        for (int i = 0; i < labs.Length; i++)
+        {
+            labs[i] = new Channel(labTest, (_) => Distribution.Erlang(4, 2), labQueue);
+        }
+
+        create.Transitions.Add(new TransitionSimple(reception));
+
+        reception.Transitions.Add(new TransitionConditional(
+            (escorting, (client) => client.Type == 1),
+            (registration, (client) => true)
+            ));
+
+        registration.Transitions.Add(new TransitionSimple(labTest));
+
+        labTest.Transitions.Add(new TransitionConditional(
+            (reception, (client) => {
+                if (client.Type == 2)
+                {
+                    reception.TryStartChannel(model.CurrentTime, new Client(1));
+                }
+                return false;
+                })
+            ));
+
+        create.Start(0);
+        model.Simulate(25, false);
+
+        model.PrintEndInfo();
     }
 }
 

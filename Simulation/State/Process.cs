@@ -32,7 +32,10 @@ public class Process : State
             {
                 return true;
             }
-            else if (channel.TryAddToQueue(client))
+        }
+        foreach (var channel in Channels)
+        {
+            if (channel.TryAddToQueue(client))
             {
                 return true;
             }

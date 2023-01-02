@@ -3,7 +3,7 @@
 public class Channel : ITimeEvent
 {
     public Process Process;
-    public Func<double> RandFunc;
+    public Func<Client, double> RandFunc;
     //
     public int Id;
     public SimulationQueueBase? Queue;
@@ -18,7 +18,7 @@ public class Channel : ITimeEvent
         => $"Channel {Id} of {Process.Name} | Client: {(Client != null ? Client.Type : "null")}";
     public double EndTime => _endTime;
     public double StartTime => _startTime;
-    public Channel(Process process, Func<double> randFunc, SimulationQueueBase? queue = null)
+    public Channel(Process process, Func<Client, double> randFunc, SimulationQueueBase? queue = null)
     {
         Process = process;
         Id = Process.Channels.Count;
@@ -68,7 +68,9 @@ public class Channel : ITimeEvent
     }
     public void Start(double startTime, Client client)
     {
-        Start(startTime, startTime + RandFunc(), client);
+        double time = RandFunc(client);
+        if (time <= 0) time = double.Epsilon;
+        Start(startTime, startTime + time, client);
     }
     public void End()
     {
@@ -88,13 +90,10 @@ public class Channel : ITimeEvent
         //
         if (Queue != null && Queue.Count > 0)
         {
-            double startTime = Queue.Timeline.LastSegment.EndTime;
+            double lastQueueStartTime = Queue.Timeline.LastSegment.EndTime;
             for (int i = 0; i < Queue.Count; i++)
             {
-                Queue.Timeline.Add(startTime, _endTime);
-                Timeline.Add(startTime, _endTime);
-                Process.Timeline.Add(startTime, _endTime);
-                Process.Model.Timeline.Add(startTime, _endTime);
+                Queue.Timeline.Add(lastQueueStartTime, _endTime);
             }
 
             Client client = Queue.Dequeue()!;

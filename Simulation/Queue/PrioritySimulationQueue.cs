@@ -5,7 +5,7 @@ public class PrioritySimulationQueue: SimulationQueueBase
     private readonly List<Client> _list = new ();
     private readonly int _maxSize;
     private readonly IComparer<Client> _comparer;
-    public PrioritySimulationQueue(int maxSize, IComparer<Client> comparer)
+    public PrioritySimulationQueue(IComparer<Client> comparer, int maxSize = int.MaxValue)
     {
         _maxSize = maxSize;
         _comparer = comparer;

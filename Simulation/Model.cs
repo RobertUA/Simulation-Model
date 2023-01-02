@@ -9,6 +9,7 @@ public class Model
     public Timeline Timeline = new Timeline();
     private double _currentTime;
     private ITimeEvent? _currentChannel;
+    public double CurrentTime => _currentTime;
     public void Simulate(double totalTime, bool printSteps=false)
     {
         _currentChannel = Closest.Dequeue();

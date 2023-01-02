@@ -22,7 +22,8 @@ public static class Distribution
     public static double Exponential(double l, Func<double>? rand = null)
     {
         if (rand == null) rand = () => Random.Shared.NextDouble();
-        return (-1 / l) * Math.Log10(rand());
+
+        return (-1 / l) * Math.Log(rand());
     }
     public static double Gaus(double a, double q, Func<double>? rand = null)
     {
@@ -34,9 +35,24 @@ public static class Distribution
         }
         return q * sum + a;
     }
-    public static double Range(double min, double max, Func<double>? rand = null)
+    public static double Erlang(double u, double k, Func<double>? rand = null)
+    {
+        if (rand == null) rand = () => Random.Shared.NextDouble();
+        double sum = 0;
+        for (int i = 0; i < k; i++)
+        {
+            sum += rand();
+        }
+        return (-1 / k * u) * Math.Log(sum);
+    }
+    public static double RangeDouble(double min, double max, Func<double>? rand = null)
     {
         if (rand == null) rand = () => Random.Shared.NextDouble();
         return min + (max - min) * rand();
+    }
+    public static int RangeInteger(int min, int max, Func<double>? rand = null)
+    {
+        if (rand == null) rand = () => Random.Shared.NextDouble();
+        return (int)Math.Floor(RangeDouble(min, max + 1 - double.Epsilon, rand));
     }
 }

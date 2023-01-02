@@ -52,7 +52,6 @@ public class Timeline
         {
             double lastEndTime = _lastSegment.EndTime;
             _lastSegment.EndTime = startTime;
-            _workLoadTime += _lastSegment.EndTime - _lastSegment.StartTime;
             Segment middleSegment;
             if (endTime <= lastEndTime) // full contain
             {
@@ -63,6 +62,7 @@ public class Timeline
             {
                 middleSegment = new Segment(startTime, lastEndTime, _lastSegment.Count + 1);
                 _lastSegment = new Segment(lastEndTime, endTime, _lastSegment.Count);
+                _workLoadTime += _lastSegment.EndTime - _lastSegment.StartTime;
             }
             _segments.Push(middleSegment);
             _workLoadTime += middleSegment.EndTime - middleSegment.StartTime;
