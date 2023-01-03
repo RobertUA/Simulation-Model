@@ -38,12 +38,12 @@ public static class Distribution
     public static double Erlang(double u, double k, Func<double>? rand = null)
     {
         if (rand == null) rand = () => Random.Shared.NextDouble();
-        double sum = 0;
+        double sum = 1;
         for (int i = 0; i < k; i++)
         {
-            sum += rand();
+            sum *= rand();
         }
-        return (-1 / k * u) * Math.Log(sum);
+        return (-1 / (k * u)) * Math.Log(sum);
     }
     public static double RangeDouble(double min, double max, Func<double>? rand = null)
     {

@@ -38,6 +38,7 @@ public class Create : State, ITimeEvent
         Start(_endTime);
         Client newClient = new (Client);
         newClient.OnCreate(_endTime);
+        newClient.Id = Model.Clients.Count;
         Model.Clients.Add(newClient);
         foreach (var transition in Transitions)
         {

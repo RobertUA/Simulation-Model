@@ -6,8 +6,8 @@ public class Process : State
     public readonly List<ITransition> FailTransitions = new();
     public Statistic Statistic = new();
     public Timeline Timeline = new();
-
     private Action? _beforeAction = null;
+    private Action? _startAction = null;
     public Process(Model model, string name) : base(name, model)
     {
         Model = model;
@@ -18,14 +18,15 @@ public class Process : State
     {
         _beforeAction = beforeAction;
     }
+    public void SetStartAction(Action startAction)
+    {
+        _startAction = startAction;
+    }
     public bool TryStartChannel(double startTime, Client client)
     {
         Statistic.TotalCount++;
         Model.Statistic.TotalCount++;
-        if (_beforeAction != null)
-        {
-            _beforeAction.Invoke();
-        }
+        _beforeAction?.Invoke();
         foreach (var channel in Channels)
         {
             if (channel.TryStart(startTime, client))
@@ -53,6 +54,7 @@ public class Process : State
     public void OnChannelStart()
     {
         Statistic.SuccessCount++;
+        _startAction?.Invoke();
     }
     public void OnChannelEnd(double startTime, double endTime)
     {

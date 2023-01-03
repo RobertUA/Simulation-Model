@@ -41,14 +41,15 @@ public class Channel : ITimeEvent
         if (Queue != null && Queue.TryEnqueue(client))
         {
             //Statistic.AdditionsToQueueCount++;
-            double startTime = Queue.Timeline.LastSegment.EndTime;
-            for (int i = 0; i < Queue.Count-1; i++)
-            {
-                Queue.Timeline.Add(startTime, _endTime);
-                Timeline.Add(startTime, _endTime);
-                Process.Timeline.Add(startTime, _endTime);
-                Process.Model.Timeline.Add(startTime, _endTime);
-            }
+            //double startTime = Queue.Timeline.LastSegment.EndTime;
+            //for (int i = 0; i < Queue.Count-1; i++)
+            //{
+            //    Queue.Timeline.Add(startTime, _endTime);
+            //    Timeline.Add(startTime, _endTime);
+            //    Process.Timeline.Add(startTime, _endTime);
+            //    Process.Model.Timeline.Add(startTime, _endTime);
+            //}
+            client.InQueue = true;
             return true;
         }
         Statistic.FailsCount++;
@@ -59,8 +60,10 @@ public class Channel : ITimeEvent
     {
         Statistic.SuccessCount++;
         Client = client;
+        Client.LastProccess = Process;
         _startTime = startTime;
         _endTime = endTime;
+        Client.OnChannelStart(_startTime, _endTime);
         Process.Model.Closest.Enqueue(this, EndTime);
         //
         Process.OnChannelStart();
@@ -74,20 +77,29 @@ public class Channel : ITimeEvent
     }
     public void End()
     {
-        Client!.OnChannelEnd(StartTime, EndTime);
-        Process.OnChannelEnd(StartTime, EndTime);
+        Client!.OnChannelEnd(StartTime, _endTime);
+        Process.OnChannelEnd(StartTime, _endTime);
 
         Timeline.Add(StartTime, EndTime);
         //Console.WriteLine($"End {State!.Name}");
+        bool transited = false;
         foreach (var transition in Process!.Transitions)
         {
             Process? nextState = transition.GetTransitionProcess(Client!);
             if (nextState != null)
             {
-                nextState.TryStartChannel(EndTime, Client!);
+                if(nextState.TryStartChannel(_endTime, Client!))
+                {
+                    transited = true;
+                }
             }
         }
         //
+        if (transited == false)
+        {
+            Client?.OnDespose(_endTime);
+        }
+        Client = null;
         if (Queue != null && Queue.Count > 0)
         {
             double lastQueueStartTime = Queue.Timeline.LastSegment.EndTime;
@@ -97,12 +109,8 @@ public class Channel : ITimeEvent
             }
 
             Client client = Queue.Dequeue()!;
+            client.InQueue = false;
             Start(EndTime, client);
-        }
-        else
-        {
-            Client!.OnDespose(EndTime);
-            Client = null;
         }
     }
 }

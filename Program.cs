@@ -147,9 +147,13 @@ static void Lab3()
     }
     static void Task3()
     {
+        int labCount = 0;
+        double lastLabTime = -1;
+        double labDifSum = 0;
         int ClientComparison(Client a, Client b)
         {
-            if (a.Type == 1 && b.Type != 1) return 1;
+            if(a.Type == b.Type) return a.CreateTime.CompareTo(b.CreateTime);  
+            else if (a.Type == 1 && b.Type != 1) return 1;
             else if (a.Type != 1 && b.Type == 1) return -1;
             else return 0;
         }
@@ -194,10 +198,24 @@ static void Lab3()
 
         SimpleSimulationQueue registationQueue = new();
         Process registration = new(model, "Registration");
-        Channel registrator = new(registration, (_) => Distribution.Erlang(4.5, 3), registationQueue);
+        Channel[] registrators = new Channel[1];
+        for (int i = 0; i < registrators.Length; i++)
+        {
+            registrators[i] = new(registration, (_) => Distribution.Erlang(4.5, 3), registationQueue);
+        }
 
         SimpleSimulationQueue labQueue = new();
         Process labTest = new(model, "Laboratory");
+        labTest.SetStartAction(() =>
+        {
+            if (lastLabTime == -1) lastLabTime = model.CurrentTime;
+            else
+            {
+                labCount++;
+                labDifSum += model.CurrentTime - lastLabTime;
+                lastLabTime = model.CurrentTime;
+            }
+        });
         Channel[] labs = new Channel[2];
         for (int i = 0; i < labs.Length; i++)
         {
@@ -224,9 +242,12 @@ static void Lab3()
             ));
 
         create.Start(0);
-        model.Simulate(25, false);
+        model.Simulate(25, true);
 
         model.PrintEndInfo();
+
+        Console.WriteLine($"Avg client time = {model.Clients.Sum(client => (client.DesposeTime != 0 ? client.DesposeTime : model.CurrentTime) - client.CreateTime)/model.Clients.Count}");
+        Console.WriteLine($"Avg time beetween lab visit = {labDifSum / labCount}");
     }
 }
 
