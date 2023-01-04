@@ -1,13 +1,13 @@
 ﻿using Simulation;
 
-public class TransitionFirst : ITransition
+public class TransitionFirst : TransitionBase
 {
-    private readonly ITransition[] _transitions;
-    public TransitionFirst(params ITransition[] transitions)
+    private readonly TransitionBase[] _transitions;
+    public TransitionFirst(params TransitionBase[] transitions)
     {
         _transitions = transitions;
     }
-    public Process? GetTransitionProcess(Client client)
+    public override Process? GetTransitionProcess(Client client)
     {
         foreach (var transition in _transitions)
         {

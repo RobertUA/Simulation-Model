@@ -1,13 +1,13 @@
 ﻿namespace Simulation;
 
-public class TransitionSimple : ITransition
+public class TransitionSimple : TransitionBase
 {
     private readonly Process _state;
-    public TransitionSimple(Process state)
+    public TransitionSimple(Process state, Func<double>? randDelay = null) : base(randDelay)
     {
         _state = state;
     }
-    public Process? GetTransitionProcess(Client client)
+    public override Process? GetTransitionProcess(Client client)
     {
         return _state;
     }

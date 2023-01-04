@@ -23,7 +23,7 @@ public static class Distribution
     {
         if (rand == null) rand = () => Random.Shared.NextDouble();
 
-        return (-1 / l) * Math.Log(rand());
+        return (-1 / l) * Math.Log(rand.Invoke());
     }
     public static double Gaus(double a, double q, Func<double>? rand = null)
     {
@@ -31,7 +31,7 @@ public static class Distribution
         double sum = -6;
         for (int i = 0; i < 12; i++)
         {
-            sum += rand();
+            sum += rand.Invoke();
         }
         return q * sum + a;
     }
@@ -41,14 +41,14 @@ public static class Distribution
         double sum = 1;
         for (int i = 0; i < k; i++)
         {
-            sum *= rand();
+            sum *= rand.Invoke();
         }
         return (-1 / (k * u)) * Math.Log(sum);
     }
     public static double RangeDouble(double min, double max, Func<double>? rand = null)
     {
         if (rand == null) rand = () => Random.Shared.NextDouble();
-        return min + (max - min) * rand();
+        return min + (max - min) * rand.Invoke();
     }
     public static int RangeInteger(int min, int max, Func<double>? rand = null)
     {

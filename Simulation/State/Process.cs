@@ -3,7 +3,7 @@
 public class Process : State
 {
     public List<Channel> Channels = new();
-    public readonly List<ITransition> FailTransitions = new();
+    public readonly List<TransitionBase> FailTransitions = new();
     public Statistic Statistic = new();
     public Timeline Timeline = new();
     private Action? _beforeAction = null;
@@ -46,7 +46,12 @@ public class Process : State
         foreach (var failTransition in FailTransitions)
         {
             Process? nextState = failTransition.GetTransitionProcess(client);
-            if(nextState!=null) nextState.TryStartChannel(startTime, client);
+            if (nextState != null)
+            {
+                double delay = failTransition.RandDelay != null ? failTransition.RandDelay.Invoke() : 0;
+                if (delay < 0) delay = 0;
+                nextState.TryStartChannel(startTime + delay, client);
+            }
         }
         return false;
     }

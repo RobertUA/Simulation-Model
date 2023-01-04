@@ -224,25 +224,29 @@ static void Lab3()
 
         create.Transitions.Add(new TransitionSimple(reception));
 
-        reception.Transitions.Add(new TransitionConditional(
-            (escorting, (client) => client.Type == 1),
-            (registration, (client) => true)
-            ));
+        reception.Transitions.Add(new TransitionFirst(
+            new TransitionConditional( new (Process?, Func<Client, bool>)[]
+            {
+                (escorting, (client) => client.Type == 1)
+            }),
+            new TransitionSimple(registration, () => Distribution.RangeDouble(2,5))
+        ));
 
         registration.Transitions.Add(new TransitionSimple(labTest));
 
-        labTest.Transitions.Add(new TransitionConditional(
+        labTest.Transitions.Add(new TransitionConditional(new (Process?, Func<Client, bool>)[]
+        {
             (reception, (client) => {
                 if (client.Type == 2)
                 {
                     reception.TryStartChannel(model.CurrentTime, new Client(1));
                 }
                 return false;
-                })
-            ));
+            })
+        }, () => Distribution.RangeDouble(2, 5)));
 
         create.Start(0);
-        model.Simulate(25, true);
+        model.Simulate(25, false);
 
         model.PrintEndInfo();
 

@@ -88,7 +88,9 @@ public class Channel : ITimeEvent
             Process? nextState = transition.GetTransitionProcess(Client!);
             if (nextState != null)
             {
-                if(nextState.TryStartChannel(_endTime, Client!))
+                double delay = transition.RandDelay != null ? transition.RandDelay.Invoke() : 0;
+                if (delay < 0) delay = 0;
+                if (nextState.TryStartChannel(_endTime + delay, Client!))
                 {
                     transited = true;
                 }
