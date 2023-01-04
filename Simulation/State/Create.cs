@@ -28,17 +28,18 @@ public class Create : State, ITimeEvent
     }
     public void Start(double startTime)
     {
-        double time = _randFunc();
+        double time = _randFunc.Invoke();
         if (time <= 0) time = double.Epsilon;
+        //Console.WriteLine($"Rand Create = {time}");
         Start(startTime, startTime + time);
     }
     public void End()
     {
         BeforeAction?.Invoke();
-        Start(_endTime);
         Client newClient = new (Client);
         newClient.OnCreate(_endTime);
         newClient.Id = Model.Clients.Count;
+        Start(_endTime);
         Model.Clients.Add(newClient);
         foreach (var transition in Transitions)
         {

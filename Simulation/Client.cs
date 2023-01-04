@@ -32,10 +32,10 @@ public class Client
     public void OnDespose(double desposeTime)
     {
         DesposeTime = desposeTime;
-        //if(OnDesposeAction!=null) OnDesposeAction.Invoke(this);
-        //if(DesposeTime < CreateTime)
+        if (OnDesposeAction != null) OnDesposeAction.Invoke(this);
+        //if (DesposeTime < CreateTime)
         //{
-        //    Console.WriteLine($"{DesposeTime} - {CreateTime} = {DesposeTime-CreateTime}");
+        //    Console.WriteLine($"{DesposeTime} - {CreateTime} = {DesposeTime - CreateTime}");
         //    Console.WriteLine($"");
         //}
     }

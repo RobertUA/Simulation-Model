@@ -128,6 +128,7 @@ static void Lab3()
 
         model.Simulate(1000000);
 
+        Console.WriteLine("============== Task2 ===============");
         Console.WriteLine("1) ================" +
             $"\nC1: Avg count = {channel1.Timeline.AvarageCount}; Workload = {channel1.Timeline.WorkloadPercent} ({channel1.Timeline.WorkloadTime}/{channel1.Timeline.TotalTime}" +
             $"\nC2: Avg count = {channel2.Timeline.AvarageCount}; Workload = {channel2.Timeline.WorkloadPercent} ({channel2.Timeline.WorkloadTime}/{channel2.Timeline.TotalTime}");
@@ -138,8 +139,8 @@ static void Lab3()
         Console.WriteLine("4) ================" +
             $"\nAvg client time = {model.Timeline.AvarageTime}");
         Console.WriteLine("5) ================" +
-            $"\nAvg С1 queue count = {channel1.Queue.Timeline.AvarageCount}" + 
-            $"\nAvg С2 queue count = {channel2.Queue.Timeline.AvarageCount}");
+            $"\nAvg С1 queue count = {channel1.Queue.Timeline!.AvarageCount}" + 
+            $"\nAvg С2 queue count = {channel2.Queue.Timeline!.AvarageCount}");
         Console.WriteLine("6) ================" +
             $"\nClient fail = {(double)model.Statistic.FailsCount/model.Clients.Count} ({model.Statistic.FailsCount}/{model.Clients.Count})");
         Console.WriteLine("7) ================" +
@@ -152,21 +153,23 @@ static void Lab3()
         double labDifSum = 0;
         int ClientComparison(Client a, Client b)
         {
-            if(a.Type == b.Type) return a.CreateTime.CompareTo(b.CreateTime);  
-            else if (a.Type == 1 && b.Type != 1) return 1;
+            //if (a.Type == b.Type) return a.CreateTime.CompareTo(b.CreateTime);
+            //else 
+            if (a.Type == 1 && b.Type != 1) return 1;
             else if (a.Type != 1 && b.Type == 1) return -1;
             else return 0;
         }
         Model model = new();
         Client createClient = new();
-        Create create = new(model, "Create", () => Distribution.Exponential(15), createClient);
+        Create create = new(model, "Create", () => Distribution.Exponential(5/15.0), createClient);
         create.BeforeAction = () =>
         {
             createClient.Type = Distribution.RangeInteger(1, 3);
             //Console.WriteLine($"rand Type = {createClient.Type}");
         };
-        PrioritySimulationQueue receptionQueue = new(Comparer<Client>.Create((a, b) => ClientComparison(a, b)));
 
+        PrioritySimulationQueue receptionQueue = new(Comparer<Client>.Create((a, b) => ClientComparison(a, b)));
+        receptionQueue.Timeline = null;
         Process reception = new(model, "Reception");
         double RandClient(Client client)
         {
@@ -189,6 +192,7 @@ static void Lab3()
         }
 
         SimpleSimulationQueue escortingQueue = new();
+        escortingQueue.Timeline = null;
         Process escorting = new(model, "Escorting");
         Channel[] escorts = new Channel[3];
         for (int i = 0; i < escorts.Length; i++)
@@ -197,6 +201,7 @@ static void Lab3()
         }
 
         SimpleSimulationQueue registationQueue = new();
+        registationQueue.Timeline = null;
         Process registration = new(model, "Registration");
         Channel[] registrators = new Channel[1];
         for (int i = 0; i < registrators.Length; i++)
@@ -205,6 +210,7 @@ static void Lab3()
         }
 
         SimpleSimulationQueue labQueue = new();
+        labQueue.Timeline = null;
         Process labTest = new(model, "Laboratory");
         labTest.SetStartAction(() =>
         {
@@ -239,19 +245,39 @@ static void Lab3()
             (reception, (client) => {
                 if (client.Type == 2)
                 {
-                    reception.TryStartChannel(model.CurrentTime, new Client(1));
+                    reception.TryStartChannel(model.CurrentTime + Distribution.RangeDouble(2, 5), new Client(1));
                 }
                 return false;
             })
-        }, () => Distribution.RangeDouble(2, 5)));
+        }));
 
         create.Start(0);
-        model.Simulate(25, false);
+        model.Simulate(100000, false);
 
         model.PrintEndInfo();
 
-        Console.WriteLine($"Avg client time = {model.Clients.Sum(client => (client.DesposeTime != 0 ? client.DesposeTime : model.CurrentTime) - client.CreateTime)/model.Clients.Count}");
-        Console.WriteLine($"Avg time beetween lab visit = {labDifSum / labCount}");
+        int[] desposeClientsCount = new int[3] { 0, 0, 0 };
+        double[] desposeClientTimeSum = new double[3] { 0, 0, 0 };
+        foreach (var client  in model.Clients)
+        {
+            if (client.DesposeTime != 0)
+            {
+                //Console.WriteLine($"Client {client.DesposeTime} - {client.CreateTime} = {client.DesposeTime - client.CreateTime}");
+                desposeClientsCount[client.Type-1]++;
+                desposeClientTimeSum[client.Type - 1] += client.DesposeTime - client.CreateTime; 
+                //if (client.DesposeTime < client.CreateTime)
+                //{
+                //    Console.WriteLine($"{client.DesposeTime} - {client.CreateTime} = {client.DesposeTime - client.CreateTime}");
+                //    Console.WriteLine($"");
+                //}
+            }
+        }
+
+        Console.WriteLine("============== Task3 ===============");
+        Console.WriteLine($"1) Avg client time: {desposeClientTimeSum[0] / desposeClientsCount[0]} | {desposeClientTimeSum[1] / desposeClientsCount[1]} | {desposeClientTimeSum[2] / desposeClientsCount[2]}");
+        Console.WriteLine($"2) Avg time beetween lab visit = {labDifSum / labCount}");
+
+        Console.WriteLine($"Queues tries {escortingQueue.Statistic.TotalCount} | {labQueue.Statistic.TotalCount} | {receptionQueue.Statistic.TotalCount} | {registationQueue.Statistic.TotalCount}");
     }
 }
 

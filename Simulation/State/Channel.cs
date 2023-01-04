@@ -67,8 +67,13 @@ public class Channel : ITimeEvent
         Process.Model.Closest.Enqueue(this, EndTime);
         //
         Process.OnChannelStart();
-        //Console.WriteLine($"Start {State.Name} (must end at: {TimeEnd})");
+        //if (_endTime < _startTime)
+        //{
+        //    Console.WriteLine($"{_endTime} - {_startTime} = {_endTime - _startTime}");
+        //    Console.WriteLine($"");
+        //}
     }
+    //Console.WriteLine($"Start {State.Name} (must end at: {TimeEnd})");
     public void Start(double startTime, Client client)
     {
         double time = RandFunc(client);
@@ -80,6 +85,7 @@ public class Channel : ITimeEvent
         Client!.OnChannelEnd(StartTime, _endTime);
         Process.OnChannelEnd(StartTime, _endTime);
 
+        
         Timeline.Add(StartTime, EndTime);
         //Console.WriteLine($"End {State!.Name}");
         bool transited = false;
@@ -104,12 +110,14 @@ public class Channel : ITimeEvent
         Client = null;
         if (Queue != null && Queue.Count > 0)
         {
-            double lastQueueStartTime = Queue.Timeline.LastSegment.EndTime;
-            for (int i = 0; i < Queue.Count; i++)
+            if (Queue.Timeline != null)
             {
-                Queue.Timeline.Add(lastQueueStartTime, _endTime);
+                double lastQueueStartTime = Queue.Timeline.LastSegment.EndTime;
+                for (int i = 0; i < Queue.Count; i++)
+                {
+                    Queue.Timeline.Add(lastQueueStartTime, _endTime);
+                }
             }
-
             Client client = Queue.Dequeue()!;
             client.InQueue = false;
             Start(EndTime, client);
