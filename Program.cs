@@ -301,7 +301,7 @@ static void Kr()
 
     Model model = new();
     Client createClient = new();
-    Create creatorA = new(model, "A", () => Distribution.RangeDouble(0.2, 0.5), createClient);
+    Create creatorA = new(model, "A", () => Distribution.RangeDouble(0.2, 2), createClient);
     creatorA.BeforeAction = () =>
     {
         createClient.Type = Distribution.RangeInteger(1, 2);
