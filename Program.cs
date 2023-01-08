@@ -1,10 +1,17 @@
 ﻿using Simulation;
 using RobRandom;
+using System.Collections;
+using System;
 
 //Lab1();
 //Lab2();
-Lab3();
+//Lab3();
+
+Kr();
+
 Console.Beep();
+
+
 
 static void Lab1()
 {
@@ -279,6 +286,79 @@ static void Lab3()
 
         Console.WriteLine($"Queues tries {escortingQueue.Statistic.TotalCount} | {labQueue.Statistic.TotalCount} | {receptionQueue.Statistic.TotalCount} | {registationQueue.Statistic.TotalCount}");
     }
+}
+
+static void Kr()
+{
+    int ClientComparison(Client a, Client b)
+    {
+        //if (a.Type == b.Type) return a.CreateTime.CompareTo(b.CreateTime);
+        //else 
+        if (a.Type == 1 && b.Type != 1) return 1;
+        else if (a.Type != 1 && b.Type == 1) return -1;
+        else return 0;
+    }
+
+    Model model = new();
+    Client createClient = new();
+    Create creatorA = new(model, "A", () => Distribution.RangeDouble(0.2, 0.5), createClient);
+    creatorA.BeforeAction = () =>
+    {
+        createClient.Type = Distribution.RangeInteger(1, 2);
+        //Console.WriteLine($"rand Type = {createClient.Type}");
+    };
+
+    Process processB = new(model, "B");
+    Channel[] channelsB = new Channel[2];
+    SimpleSimulationQueue queueB = new(3);
+    queueB.Timeline = null;
+    for (int i = 0; i < channelsB.Length; i++)
+    {
+        channelsB[i] = new Channel(processB, (_) => Distribution.RangeDouble(2, 4), queueB);
+    }
+
+    Process processC = new(model, "C");
+    Channel[] channelsC = new Channel[1];
+    SimpleSimulationQueue queueC = new(3);
+    queueC.Timeline = null;
+    for (int i = 0; i < channelsC.Length; i++)
+    {
+        channelsC[i] = new Channel(processC, (_) => Distribution.RangeDouble(1, 3), queueC);
+    }
+    
+    Process processF = new(model, "F");
+    Channel[] channelsF = new Channel[1];
+    //PrioritySimulationQueue queueF = new(Comparer<Client>.Create((a, b) => ClientComparison(a, b)));
+    SimpleSimulationQueue queueF = new();
+    queueF.Timeline = null;
+    for (int i = 0; i < channelsF.Length; i++)
+    {
+        channelsF[i] = new Channel(processF, (_) => Distribution.RangeDouble(2, 3), queueF);
+    }
+
+    creatorA.Transitions.Add(new TransitionFirst(
+            new TransitionConditional(new (Process?, Func<Client, bool>)[]
+            {
+                (processB, (client) => client.Type == 1)
+            } 
+                //,() => Distribution.RangeDouble(1, 2)
+                ),
+
+            new TransitionSimple(processC
+                //,() => Distribution.RangeDouble(2, 4)
+                )
+        ));
+
+    processB.Transitions.Add(new TransitionSimple(processF
+        //, () => Distribution.RangeDouble(2, 4)
+        ));
+    processC.Transitions.Add(new TransitionSimple(processF
+        //, () => Distribution.RangeDouble(1, 2)
+        ));
+
+    creatorA.Start(0);
+    model.Simulate(1000000, false);
+    model.PrintEndInfo();
 }
 
 static int ChannelComparison(Channel x, Channel y)
