@@ -112,11 +112,7 @@ public class Channel : ITimeEvent
         {
             if (Queue.Timeline != null)
             {
-                double lastQueueStartTime = Queue.Timeline.LastSegment.EndTime;
-                for (int i = 0; i < Queue.Count; i++)
-                {
-                    Queue.Timeline.Add(lastQueueStartTime, _endTime);
-                }
+                Queue.Timeline.Add(Queue.Timeline.LastSegment.EndTime, _endTime, Queue.Count);
             }
             Client client = Queue.Dequeue()!;
             client.InQueue = false;

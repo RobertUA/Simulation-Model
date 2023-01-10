@@ -39,13 +39,13 @@ public class Timeline
     }
     public double AvarageCount => CountTimeProduct / TotalTime;
     public double AvarageTime => CountTimeProduct / _segments.Count;
-    public void Add(double startTime, double endTime)
+    public void Add(double startTime, double endTime, int count = 1)
     {
         if (startTime >= _lastSegment.EndTime)
         {
             _waitTime += startTime - _lastSegment.EndTime;
             _workLoadTime += _lastSegment.EndTime - _lastSegment.StartTime;
-            _lastSegment = new Segment(startTime, endTime);
+            _lastSegment = new Segment(startTime, endTime, count);
             _segments.Push(_lastSegment);
         }
         else
@@ -55,12 +55,12 @@ public class Timeline
             Segment middleSegment;
             if (endTime <= lastEndTime) // full contain
             {
-                middleSegment = new Segment(startTime, endTime, _lastSegment.Count + 1);
+                middleSegment = new Segment(startTime, endTime, _lastSegment.Count + count);
                 _lastSegment = new Segment(endTime, lastEndTime, _lastSegment.Count);
             }
             else
             {
-                middleSegment = new Segment(startTime, lastEndTime, _lastSegment.Count + 1);
+                middleSegment = new Segment(startTime, lastEndTime, _lastSegment.Count + count);
                 _lastSegment = new Segment(lastEndTime, endTime, _lastSegment.Count);
                 _workLoadTime += _lastSegment.EndTime - _lastSegment.StartTime;
             }
