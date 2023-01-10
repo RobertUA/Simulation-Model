@@ -1,14 +1,16 @@
 ﻿using Simulation;
 using RobRandom;
-using System.Collections;
-using System;
 
 //Lab1();
 //Lab2();
 //Lab3();
 
+System.Diagnostics.Stopwatch clock = new System.Diagnostics.Stopwatch();
+clock.Start();
 Kr();
+clock.Stop();
 
+Console.WriteLine($"Time = {clock.Elapsed}");
 Console.Beep();
 
 
@@ -305,6 +307,7 @@ static void Kr()
     creatorA.BeforeAction = () =>
     {
         createClient.Type = Distribution.RangeInteger(1, 2);
+        //createClient.Type = 2;
         //Console.WriteLine($"rand Type = {createClient.Type}");
     };
 
@@ -339,15 +342,17 @@ static void Kr()
     creatorA.Transitions.Add(new TransitionFirst(
             new TransitionConditional(new (Process?, Func<Client, bool>)[]
             {
-                (processB, (client) => client.Type == 1)
-            } 
-                //,() => Distribution.RangeDouble(1, 2)
-                ),
-
-            new TransitionSimple(processC
-                //,() => Distribution.RangeDouble(2, 4)
-                )
-        ));
+                (processB, (client) =>
+                {
+                    double chance = 0.15;
+                    double rand = Distribution.RangeDouble(0, 1);
+                    if(client.Type == 1 && rand <= chance) return true;
+                    if(client.Type == 2 && rand > chance) return true;
+                    return false;
+                }),
+                (processC, _ => true)
+            }
+        )));
 
     processB.Transitions.Add(new TransitionSimple(processF
         //, () => Distribution.RangeDouble(2, 4)
@@ -357,7 +362,7 @@ static void Kr()
         ));
 
     creatorA.Start(0);
-    model.Simulate(1000000, false);
+    model.Simulate(2500000, false);
     model.PrintEndInfo();
 }
 
