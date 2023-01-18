@@ -36,30 +36,32 @@ static void Lab1()
     Console.WriteLine($"================ {DateTime.Now} ================");
     for (double l = 0.5; l <= 4; l += 0.5f)
     {
-        var v = WriteValues(streamWriter, $"Exponential({l})", 10000, () => Distribution.Exponential(l));
-        Distribution.ExpCheck(v, l);
+        var values = WriteValues(streamWriter, $"Exponential({l})", 10000, () => Distribution.Exponential(l));
+        Distribution.Check(values, (x) => Distribution.ExpF(x, l));
     }
-    //
-    for (double a = 1; a <= 2; a += 0.5f)
+
+    for (double u = 1; u <= 2; u += 0.5f)
     {
         for (double q = 1; q <= 2; q += 0.5f)
         {
-            WriteValues(streamWriter, $"Gaus({a}, {q})", 10000, () => Distribution.Gaus(a, q));
+            var values = WriteValues(streamWriter, $"Gaus({u}, {q})", 10000, () => Distribution.Gaus(u, q));
+            Distribution.Check(values, (x) => Distribution.GausF(x, u, q));
         }
     }
+
+    //double c = 522225;
+    //for (double a = 6; a < 8; a += 1)
+    //{
+    //    Uniform uniform = new(1, a, 0, c);
+    //    var values = WriteValues(streamWriter, $"Uniform ({a}, {c})", 10000, () => uniform.Next());
+    //    Distribution.Check(values, (x) => Distribution.UniformF(x, a, c));
+    //}
     //
-    for (double a = 1; a <= 2; a += 0.5f)
-    {
-        for (double c = 1; c <= 2; c += 0.5f)
-        {
-            Uniform uniform = new (1, a, 0, c);
-            WriteValues(streamWriter, $"Uniform ({a}, {c})", 10000, () => uniform.Next());
-        }
-    }
-    //
-    Uniform concreteUniform = new (1, Math.Pow(5, 13), 0, Math.Pow(2, 31));
-    WriteValues(streamWriter, "Uniform (5^13, 2^31)", 10000, () => concreteUniform.Next());
-    //
+    //double ca = Math.Pow(5, 13), cb = Math.Pow(2, 31);
+    //Uniform concreteUniform = new(1, Math.Pow(5, 13), 0, Math.Pow(2, 31));
+    //var cvalues = WriteValues(streamWriter, "Uniform (5^13, 2^31)", 10000, () => concreteUniform.Next());
+    //Distribution.Check(cvalues, (x) => Distribution.UniformF(x, ca, cb));
+
     streamWriter.Close();
 }
 
