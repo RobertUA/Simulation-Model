@@ -1,23 +1,23 @@
 ﻿using Simulation;
 using RobRandom;
 
-//Lab1();
+Lab1();
 //Lab2();
 //Lab3();
 
-System.Diagnostics.Stopwatch clock = new System.Diagnostics.Stopwatch();
-clock.Start();
-Kr();
-clock.Stop();
+//System.Diagnostics.Stopwatch clock = new System.Diagnostics.Stopwatch();
+//clock.Start();
+//Kr();
+//clock.Stop();
 
-Console.WriteLine($"Time = {clock.Elapsed}");
+//Console.WriteLine($"Time = {clock.Elapsed}");
 Console.Beep();
 
 
 
 static void Lab1()
 {
-    static void WriteValues(StreamWriter streamWriter, string name, int count, Func<double> rand)
+    static double[] WriteValues(StreamWriter streamWriter, string name, int count, Func<double> rand)
     {
         const char separator = ';';
         double[] randValues = new double[count];
@@ -28,6 +28,7 @@ static void Lab1()
         streamWriter.WriteLine($"{name}{separator} {string.Join(separator, randValues)}");
 
         Console.WriteLine($"{name} | {count} - DONE");
+        return randValues;
     }
 
     StreamWriter streamWriter = new ("DistributionResults.txt");
@@ -35,14 +36,14 @@ static void Lab1()
     Console.WriteLine($"================ {DateTime.Now} ================");
     for (double l = 0.5; l <= 4; l += 0.5f)
     {
-        WriteValues(streamWriter, $"Exponential({l})", 10000, () => Distribution.Exponential(l));
+        var v = WriteValues(streamWriter, $"Exponential({l})", 10000, () => Distribution.Exponential(l));
+        Distribution.ExpCheck(v, l);
     }
     //
     for (double a = 1; a <= 2; a += 0.5f)
     {
         for (double q = 1; q <= 2; q += 0.5f)
         {
-
             WriteValues(streamWriter, $"Gaus({a}, {q})", 10000, () => Distribution.Gaus(a, q));
         }
     }
@@ -51,7 +52,7 @@ static void Lab1()
     {
         for (double c = 1; c <= 2; c += 0.5f)
         {
-            Uniform uniform = new (1, Math.Pow(5, 13), 0, Math.Pow(2, 31));
+            Uniform uniform = new (1, a, 0, c);
             WriteValues(streamWriter, $"Uniform ({a}, {c})", 10000, () => uniform.Next());
         }
     }
@@ -66,7 +67,7 @@ static void Lab2()
 {
     Model model = new();
 
-    Create create = new(model, "Create", () => Random.Shared.NextDouble());
+    Create create = new(model, "Create", () => 0.3);
 
     Process process1 = new(model, "Process-1");
     process1.SetBeforeAction(() => ChannelsSort(process1));
@@ -89,12 +90,13 @@ static void Lab2()
     //process3.Transitions.Add(new TransitionSimple(process2)); // Multy transitions;
 
     create.Start(0);
-    model.Simulate(100000);
+    model.Simulate(100000, false);
+    model.PrintEndInfo();
 }
 
 static void Lab3()
 {
-    //Task2();
+    Task2();
     Task3();
     static void Task2()
     {
@@ -173,7 +175,11 @@ static void Lab3()
         Create create = new(model, "Create", () => Distribution.Exponential(5/15.0), createClient);
         create.BeforeAction = () =>
         {
-            createClient.Type = Distribution.RangeInteger(1, 3);
+            double rand = Distribution.RangeDouble(0, 1);
+            if (rand < 0.5) createClient.Type = 1;
+            else if (rand < 0.6) createClient.Type = 2;
+            else createClient.Type = 3;
+            //createClient.Type = Distribution.RangeInteger(1, 3);
             //Console.WriteLine($"rand Type = {createClient.Type}");
         };
 
@@ -263,7 +269,7 @@ static void Lab3()
         create.Start(0);
         model.Simulate(100000, false);
 
-        model.PrintEndInfo();
+        //model.PrintEndInfo();
 
         int[] desposeClientsCount = new int[3] { 0, 0, 0 };
         double[] desposeClientTimeSum = new double[3] { 0, 0, 0 };
